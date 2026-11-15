@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0f766e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Relief Helper">
+<title>Tax Relief Helper</title>
+<style>
+:root{
+  --bg:#f4f6f5; --card:#ffffff; --ink:#14201d; --muted:#5c6b67; --line:#dfe5e3;
+  --brand:#0f766e; --brand-ink:#ffffff; --brand-soft:#d9f0ec; --accent:#f59e0b; --danger:#c2410c; --ok:#15803d;
+  --shadow:0 10px 30px rgba(15,40,35,.10);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c1311; --card:#15201d; --ink:#e8efed; --muted:#9db0ab; --line:#26332f;
+    --brand:#2dd4bf; --brand-ink:#04201c; --brand-soft:#123a34; --accent:#fbbf24; --danger:#fb923c; --ok:#4ade80;
+    --shadow:0 10px 30px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c1311; --card:#15201d; --ink:#e8efed; --muted:#9db0ab; --line:#26332f;
+  --brand:#2dd4bf; --brand-ink:#04201c; --brand-soft:#123a34; --accent:#fbbf24; --danger:#fb923c; --ok:#4ade80;
+  --shadow:0 10px 30px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;overscroll-behavior:none}
+body{display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+header{display:flex;align-items:center;gap:10px;padding:12px 16px 6px}
+header h1{font-size:15px;margin:0;font-weight:700;letter-spacing:.2px;flex:1}
+header .pill{font-size:12px;font-weight:700;background:var(--brand-soft);color:var(--brand);padding:4px 10px;border-radius:99px}
+.iconbtn{border:0;background:transparent;color:var(--muted);font-size:20px;width:36px;height:36px;border-radius:10px}
+.progress{height:4px;margin:4px 16px 0;background:var(--line);border-radius:4px;overflow:hidden}
+.progress>i{display:block;height:100%;width:0;background:var(--brand);transition:width .3s}
+.meta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);padding:6px 18px 0}
+main{flex:1;position:relative;overflow:hidden;touch-action:pan-y}
+.card{position:absolute;inset:10px 16px 10px;background:var(--card);border-radius:22px;box-shadow:var(--shadow);padding:22px 20px;display:flex;flex-direction:column;overflow-y:auto;transition:transform .28s ease,opacity .28s ease}
+.card.out-left{transform:translateX(-110%);opacity:0}
+.card.out-right{transform:translateX(110%);opacity:0}
+.card.in-right{transform:translateX(110%);opacity:0;transition:none}
+.card.in-left{transform:translateX(-110%);opacity:0;transition:none}
+.emoji{font-size:44px;line-height:1;margin-bottom:10px}
+.kicker{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--brand)}
+h2{font-size:24px;line-height:1.2;margin:6px 0 8px}
+p.sub{color:var(--muted);margin:0 0 14px;font-size:15px}
+.cap{display:inline-block;font-size:13px;font-weight:700;color:var(--ink);background:var(--brand-soft);padding:4px 10px;border-radius:99px;margin-bottom:14px}
+.spacer{flex:1;min-height:12px}
+.opts{display:grid;gap:10px}
+.opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:2px solid var(--line);background:transparent;color:var(--ink);border-radius:16px;padding:16px;font-size:17px;font-weight:600}
+.opt .e{font-size:24px}
+.opt.sel{border-color:var(--brand);background:var(--brand-soft)}
+.opt:active{transform:scale(.98)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.big{font-size:40px;font-weight:800;letter-spacing:-1px;margin:6px 0 2px;font-variant-numeric:tabular-nums}
+.big small{font-size:18px;font-weight:700;color:var(--muted);margin-right:4px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.chip{border:2px solid var(--line);background:transparent;color:var(--ink);border-radius:99px;padding:10px 14px;font-size:15px;font-weight:700}
+.chip.sel{border-color:var(--brand);background:var(--brand);color:var(--brand-ink)}
+input[type=range]{width:100%;height:44px;accent-color:var(--brand);margin:4px 0}
+.stepper{display:flex;align-items:center;justify-content:space-between;border:2px solid var(--line);border-radius:16px;padding:8px 10px 8px 16px;margin-bottom:10px}
+.stepper .lab{font-weight:600;font-size:15px;flex:1;padding-right:8px}
+.stepper .lab small{display:block;color:var(--muted);font-weight:500;font-size:12.5px}
+.stepper .ctl{display:flex;align-items:center;gap:8px}
+.stepper button{width:44px;height:44px;border-radius:12px;border:0;background:var(--brand-soft);color:var(--brand);font-size:24px;font-weight:800}
+.stepper .n{min-width:24px;text-align:center;font-weight:800;font-size:20px;font-variant-numeric:tabular-nums}
+.sublist .item{border-top:1px solid var(--line);padding:12px 0}
+.sublist .item:first-child{border-top:0}
+.sublist .hd{display:flex;justify-content:space-between;font-weight:600;font-size:15px}
+.sublist .hd span:last-child{font-variant-numeric:tabular-nums}
+.note{font-size:13px;color:var(--muted);background:var(--bg);border-radius:12px;padding:10px 12px;margin-top:12px}
+.warn{color:var(--danger)}
+.nav{display:flex;gap:10px;padding:0 16px 14px}
+.nav button{flex:1;height:54px;border-radius:16px;border:0;font-size:17px;font-weight:700}
+.nav .back{background:var(--card);color:var(--ink);box-shadow:var(--shadow);flex:0 0 76px}
+.nav .next{background:var(--brand);color:var(--brand-ink)}
+.nav .skip{background:transparent;color:var(--muted);flex:0 0 auto;padding:0 12px}
+.hint{text-align:center;font-size:12px;color:var(--muted);padding:0 0 6px}
+.sum-row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:15px}
+.sum-row span:last-child{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sum-row.total{border-bottom:0;font-size:17px}
+.hero{background:var(--brand);color:var(--brand-ink);border-radius:18px;padding:16px;margin:4px 0 14px}
+.hero .l{font-size:13px;opacity:.85;font-weight:600}
+.hero .v{font-size:32px;font-weight:800;font-variant-numeric:tabular-nums}
+.hero .g{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.hero .g div{background:rgba(255,255,255,.14);border-radius:12px;padding:8px 10px}
+.hero .g b{display:block;font-size:18px}
+h3{font-size:15px;margin:18px 0 6px}
+.docs li{margin:4px 0;font-size:14px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.actions button{height:48px;border-radius:14px;border:2px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:15px}
+.toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+@media print{
+  header,.progress,.meta,.nav,.hint,.actions{display:none!important}
+  main{overflow:visible}
+  .card{position:static;box-shadow:none;inset:auto}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>🇲🇾 Tax Relief Helper</h1>
+  <span class="pill" id="yaPill">YA 2026</span>
+  <button class="iconbtn" id="themeBtn" aria-label="Switch theme">◐</button>
+</header>
+<div class="progress"><i id="bar"></i></div>
+<div class="meta"><span id="stepNo"></span><span id="runTotal"></span></div>
+<main id="stage"></main>
+<div class="hint" id="hint">Swipe ← to continue · swipe → to go back</div>
+<div class="nav">
+  <button class="back" id="backBtn" aria-label="Back">←</button>
+  <button class="skip" id="skipBtn">Not for me</button>
+  <button class="next" id="nextBtn">Next →</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   RELIEF DATA — Malaysia resident individual, Form BE.
+   YA 2025 = income earned in 2025 (filed in 2026).
+   YA 2026 = income earned in 2026 (filed in 2027), with Budget 2026 changes.
+   Figures compiled from published guides; verify against LHDN (hasil.gov.my).
+   ============================================================ */
+const RM = n => "RM" + Math.round(n).toLocaleString("en-MY");
+const BANDS = [[5000,0],[15000,.01],[15000,.03],[15000,.06],[20000,.11],[30000,.19],[300000,.25],[200000,.26],[1400000,.28],[Infinity,.30]];
+function taxOn(ci){let t=0,left=Math.max(0,ci);for(const [w,r] of BANDS){const x=Math.min(left,w);t+=x*r;left-=x;if(left<=0)break;}return t;}
+
+const RELIEFS = [
+  {id:"individual", cat:"Personal", e:"🧍", t:"Individual & dependent relatives", cap:9000, auto:true,
+   docs:[], note:"Given automatically to every resident individual."},
+  {id:"disabledSelf", cat:"Personal", e:"♿", t:"Disabled individual", cap:7000, fixed:true, when:s=>s.a.disabled==="yes",
+   docs:["JKM disability (OKU) card / certification"]},
+  {id:"spouse", cat:"Family", e:"💍", t:"Spouse / alimony to former wife", cap:4000, fixed:true, when:s=>s.a.married==="yes" && s.a.spouseIncome==="no",
+   docs:["Marriage certificate","Spouse's proof of no income / joint assessment election"]},
+  {id:"disabledSpouse", cat:"Family", e:"♿", t:"Disabled spouse", cap:6000, fixed:true, when:s=>s.a.married==="yes" && s.a.spouseDisabled==="yes",
+   docs:["Spouse's JKM certification"]},
+  {id:"childcare", cat:"Children", e:"🧸", ya:{2025:"Registered childcare centre / kindergarten, child aged 6 or below",2026:"Registered childcare, kindergarten, day-care or after-school transit centre, child aged 12 or below"},
+   t:"Childcare / kindergarten fees", cap:3000, when:s=>s.a.youngKids==="yes",
+   docs:["Receipts from a centre registered with JKM / Ministry of Education"], tip:"Only one parent can claim for the same child."},
+  {id:"breastfeed", cat:"Children", e:"🍼", t:"Breastfeeding equipment", cap:1000, when:s=>s.a.gender==="f" && s.a.baby==="yes",
+   docs:["Receipt for breast pump, cooler bag, etc."], tip:"Mothers only, child aged 2 or below, once every 2 years."},
+  {id:"sspn", cat:"Children", e:"🎓", t:"SSPN net savings", cap:8000, when:s=>s.a.hasKids==="yes",
+   docs:["SSPN annual statement (deposits minus withdrawals in the year)"]},
+  {id:"medical", cat:"Medical", e:"🩺", t:"Medical expenses — self, spouse & children", cap:10000, group:true, when:()=>true,
+   subs:[
+     {id:"serious", t:"Serious illness & fertility treatment", cap:10000},
+     {id:"vaccine", t:"Vaccinations", cap:1000, ya:{2025:"Listed vaccines only",2026:"Any NPRA-registered vaccine"}},
+     {id:"dental", t:"Dental examination & treatment", cap:1000},
+     {id:"checkup", t:"Check-up, screening, self-test kits, mental health", cap:1000},
+     {id:"learning", t:"Child learning disability — diagnosis & intervention", capYA:{2025:6000,2026:10000}, when:s=>s.a.hasKids==="yes"}
+   ], docs:["Clinic/hospital receipts","Doctor's certification for serious illness"]},
+  {id:"parents", cat:"Medical", e:"👵", t:"Medical care for parents / grandparents", cap:8000, when:s=>s.a.parents==="yes",
+   docs:["Receipts","Medical practitioner's certification for care/treatment"], tip:"Includes full check-up & vaccination (sub-limit RM1,000). Parents must live in Malaysia."},
+  {id:"equipment", cat:"Medical", e:"🦽", t:"Supporting equipment for disabled family", cap:6000, when:s=>s.a.disabledFamily==="yes"||s.a.disabled==="yes",
+   docs:["Receipts for wheelchair, hearing aid, dialysis machine, prosthetics, etc."], tip:"Spectacles and optical lenses don't qualify."},
+  {id:"eduFees", cat:"Education", e:"📚", t:"Your own education fees", cap:7000, when:s=>s.a.studying==="yes",
+   docs:["Fee receipts","Offer letter / course details"], tip:"Recognised upskilling / self-enhancement courses are capped at RM2,000 within this."},
+  {id:"lifestyle", cat:"Lifestyle", e:"📱", t:"Lifestyle — books, gadgets, internet", cap:2500, when:()=>true,
+   docs:["Receipts for books, phone, tablet, PC","Internet bills in your name"], tip:"Not for business use. Covers self, spouse and children."},
+  {id:"sports", cat:"Lifestyle", e:"🏸", t:"Sports & fitness", cap:1000, when:()=>true,
+   docs:["Receipts for equipment, gym / court fees, race registrations"]},
+  {id:"tourism", cat:"Lifestyle", e:"🏝️", t:"Tourist attraction & cultural entrance fees", cap:1000, onlyYA:[2026], when:()=>true,
+   docs:["Entrance tickets / receipts"], tip:"New for YA 2026 (Budget 2026)."},
+  {id:"green", cat:"Lifestyle", e:"🔌", ya:{2025:"EV charging equipment / subscription, food waste composting machine",2026:"EV charging, composting machine, food waste grinder, home CCTV"},
+   t:"EV charging & green home items", cap:2500, when:()=>true,
+   docs:["Purchase / installation / subscription receipts"], tip:"Not for business use."},
+  {id:"epf", cat:"Savings", e:"🏦", t:"EPF contributions (employee)", cap:4000, suggest:s=>Math.min(4000,s.income*0.11), when:s=>s.a.job==="employed"||s.a.job==="self",
+   docs:["EA form (shows EPF deducted)","i-Akaun statement"], tip:"Part of the RM7,000 combined life insurance + EPF limit."},
+  {id:"life", cat:"Savings", e:"🛡️", t:"Life insurance / family takaful", ya:{2025:"Self and spouse",2026:"Self, spouse and (new) eligible children"}, cap:3000, when:()=>true,
+   docs:["Insurer's annual premium statement"]},
+  {id:"prs", cat:"Savings", e:"📈", t:"Private Retirement Scheme & deferred annuity", cap:3000, when:()=>true,
+   docs:["PRS provider's annual statement"]},
+  {id:"eduMed", cat:"Savings", e:"🏥", t:"Education & medical insurance premiums", cap:4000, when:()=>true,
+   docs:["Insurer's annual premium statement"]},
+  {id:"socso", cat:"Savings", e:"🧾", t:"SOCSO & EIS contributions", cap:350, suggest:s=>s.a.job==="employed"?Math.min(350,Math.round(Math.min(s.income,72000)*0.007)):0, when:s=>s.a.job==="employed",
+   docs:["EA form / payslips"]},
+  {id:"home", cat:"Housing", e:"🏠", t:"First home loan interest", capFn:s=>s.a.homePrice==="low"?7000:5000, when:s=>s.a.firstHome==="yes",
+   docs:["SPA (signed 1 Jan 2025 – 31 Dec 2027)","Bank's yearly interest statement"], tip:"Interest only, first 3 consecutive years. RM7,000 if price ≤ RM500k; RM5,000 if RM500,001–750,000."}
+];
+
+/* Child relief per head (fixed). */
+const KIDS = [
+  {id:"u18", t:"Under 18", rm:2000},
+  {id:"preU", t:"18+ in pre-university", sub:"A-Level, matriculation, foundation", rm:2000},
+  {id:"higher", t:"18+ diploma or degree", sub:"Diploma+ in Malaysia, degree+ abroad", rm:8000},
+  {id:"oku", t:"Disabled child", sub:"Unmarried, any age", rm:8000},
+  {id:"okuStudy", t:"Disabled child also in higher education", sub:"Adds RM8,000 on top", rm:8000}
+];
+
+/* ============================================================ STATE */
+const KEY = "my-tax-relief-helper-v1";
+const fresh = () => ({ya:2026, income:60000, a:{}, amt:{}, sub:{}, kids:{}, zakat:0, donation:0, step:0});
+let S = fresh();
+try{ const saved = JSON.parse(localStorage.getItem(KEY)||"null"); if(saved && saved.a) S = Object.assign(fresh(), saved); }catch(e){}
+const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} };
+
+function capOf(r){ if(r.capFn) return r.capFn(S); return r.cap; }
+function subCap(sb){ return sb.capYA ? sb.capYA[S.ya] : sb.cap; }
+function activeReliefs(){ return RELIEFS.filter(r => (!r.onlyYA || r.onlyYA.includes(S.ya)) && (!r.when || r.when(S))); }
+function claimOf(r){
+  if(r.auto) return r.cap;
+  if(r.group){ const subs=r.subs.filter(sb=>!sb.when||sb.when(S)); let t=0; for(const sb of subs) t+=Math.min(S.sub[sb.id]||0, subCap(sb)); return Math.min(t, r.cap); }
+  if(r.fixed) return S.amt[r.id] ? r.cap : 0;
+  return Math.min(S.amt[r.id]||0, capOf(r));
+}
+function kidsTotal(){ return KIDS.reduce((t,k)=>t+(S.kids[k.id]||0)*k.rm,0); }
+function compute(){
+  const rel = activeReliefs();
+  let reliefs = rel.reduce((t,r)=>t+claimOf(r),0);
+  // EPF + life insurance share a RM7,000 combined limit
+  const epf = rel.find(r=>r.id==="epf") ? claimOf(RELIEFS.find(r=>r.id==="epf")) : 0;
+  const life = claimOf(RELIEFS.find(r=>r.id==="life"));
+  const over = Math.max(0, epf + life - 7000); reliefs -= over;
+  if(S.a.hasKids==="yes") reliefs += kidsTotal();
+  const donation = Math.min(S.donation||0, S.income*0.10);
+  const aggregate = Math.max(0, S.income - donation);
+  const chargeable = Math.max(0, aggregate - reliefs);
+  const grossTax = taxOn(chargeable);
+  let rebate = 0;
+  if(chargeable <= 35000){ rebate += 400; if(S.a.married==="yes" && S.a.spouseIncome==="no") rebate += 400; }
+  const zakat = S.zakat||0;
+  const payable = Math.max(0, grossTax - rebate - zakat);
+  const noRelief = Math.max(0, taxOn(Math.max(0, aggregate - 9000)) - (aggregate-9000<=35000?400:0) - zakat);
+  return {reliefs, donation, aggregate, chargeable, grossTax, rebate, zakat, payable, saved: Math.max(0, noRelief - payable)};
+}
+
+/* ============================================================ STEPS */
+function q(key, emoji, kicker, title, sub, options, extra={}){
+  return Object.assign({type:"choice", key, emoji, kicker, title, sub, options}, extra);
+}
+const YN = [{v:"yes",l:"Yes",e:"👍"},{v:"no",l:"No",e:"👎"}];
+
+function buildSteps(){
+  const st = [];
+  st.push({type:"welcome"});
+  st.push(q("ya","📅","Year","Which year are you claiming for?","YA = Year of Assessment (the year you earned the income).",
+    [{v:2026,l:"YA 2026 — income in 2026",e:"🆕",sub:"File in 2027 · includes Budget 2026 changes"},{v:2025,l:"YA 2025 — income in 2025",e:"🗂️",sub:"File in 2026"}],{num:true, root:true}));
+  st.push({type:"income"});
+  st.push(q("job","💼","About you","How do you earn your income?","",
+    [{v:"employed",l:"Salaried employee",e:"🧑‍💼"},{v:"self",l:"Self-employed / business",e:"🛠️"},{v:"other",l:"Other / retired",e:"🌴"}]));
+  st.push(q("gender","🙂","About you","You are…","Only used for mother-specific reliefs.",[{v:"f",l:"Female",e:"👩"},{v:"m",l:"Male",e:"👨"}]));
+  st.push(q("disabled","♿","About you","Are you registered as OKU with JKM?","",YN));
+  st.push(q("married","💍","Family","Are you married?","",YN));
+  if(S.a.married==="yes"){
+    st.push(q("spouseIncome","💼","Family","Does your spouse have income?","Choose No if your spouse has no income or elects joint assessment under you.",YN));
+    st.push(q("spouseDisabled","♿","Family","Is your spouse registered OKU?","",YN));
+  }
+  st.push(q("hasKids","👨‍👩‍👧","Family","Do you have children?","Including adopted and step-children.",YN));
+  if(S.a.hasKids==="yes"){
+    st.push({type:"kids"});
+    st.push(q("youngKids","🧸","Family", S.ya===2026?"Any child aged 12 or below in childcare / after-school care?":"Any child aged 6 or below in childcare / kindergarten?","",YN));
+    if(S.a.gender==="f") st.push(q("baby","🍼","Family","Do you have a child aged 2 or below?","",YN));
+  }
+  st.push(q("parents","👵","Family","Did you pay for your parents' or grandparents' medical care?","",YN));
+  st.push(q("disabledFamily","🦽","Family","Did you buy equipment for a disabled spouse, child or parent?","",YN));
+  st.push(q("studying","📚","Education","Did you pay for your own course or studies?","Degree, master's, PhD, professional or recognised upskilling courses.",YN));
+  st.push(q("firstHome","🏠","Housing","Did you buy your first home (SPA signed 2025–2027)?","",YN));
+  if(S.a.firstHome==="yes") st.push(q("homePrice","🏷️","Housing","What was the home's price?","",[{v:"low",l:"Up to RM500,000",e:"🏡",sub:"Relief up to RM7,000"},{v:"mid",l:"RM500,001 – RM750,000",e:"🏘️",sub:"Relief up to RM5,000"}]));
+  st.push({type:"divider"});
+  for(const r of activeReliefs()){ if(r.auto) continue; if(r.fixed){ st.push({type:"fixed", r}); continue; } st.push({type: r.group?"group":"amount", r}); }
+  st.push({type:"extras"});
+  st.push({type:"summary"});
+  return st;
+}
+
+/* ============================================================ RENDER */
+const stage = document.getElementById("stage");
+let steps = buildSteps(), current = null;
+S.step = Math.min(S.step||0, steps.length-1);
+
+function el(html){ const d=document.createElement("div"); d.className="card"; d.innerHTML=html; return d; }
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function yaText(obj){ return obj ? obj[S.ya] : ""; }
+
+function amountUI(id, cap, value, label){
+  const pcts = [0,.25,.5,.75,1];
+  const step = cap<=1000?50:cap<=5000?100:250;
+  return `<div data-amt="${id}" data-cap="${cap}">
+    ${label?`<div class="hd"><span>${esc(label)}</span><span>max ${RM(cap)}</span></div>`:""}
+    <div class="big"><small>RM</small><span class="val">${Math.round(value).toLocaleString("en-MY")}</span></div>
+    <div class="chips">${pcts.map(p=>`<button class="chip ${Math.round(value)===Math.round(cap*p)?"sel":""}" data-set="${Math.round(cap*p)}">${p===0?"None":p===1?"Max":Math.round(p*100)+"%"}</button>`).join("")}</div>
+    <input type="range" min="0" max="${cap}" step="${step}" value="${value}" aria-label="Amount">
+  </div>`;
+}
+
+function render(dir){
+  steps = buildSteps();
+  S.step = Math.max(0, Math.min(S.step, steps.length-1));
+  const s = steps[S.step];
+  const card = makeCard(s);
+  if(current){
+    const old = current;
+    old.classList.add(dir>0?"out-left":"out-right");
+    setTimeout(()=>old.remove(), 300);
+    card.classList.add(dir>0?"in-right":"in-left");
+    stage.appendChild(card);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>card.classList.remove("in-right","in-left")));
+  } else stage.appendChild(card);
+  current = card;
+  updateChrome(s);
+  save();
+}
+
+function updateChrome(s){
+  const pct = Math.round(S.step/(steps.length-1)*100);
+  document.getElementById("bar").style.width = pct+"%";
+  document.getElementById("stepNo").textContent = `Step ${S.step+1} of ${steps.length}`;
+  const c = compute();
+  document.getElementById("runTotal").textContent = `Reliefs so far: ${RM(c.reliefs)}`;
+  document.getElementById("yaPill").textContent = "YA "+S.ya;
+  const back = document.getElementById("backBtn"), next=document.getElementById("nextBtn"), skip=document.getElementById("skipBtn");
+  back.style.visibility = S.step===0?"hidden":"visible";
+  skip.style.display = (s.type==="amount"||s.type==="group"||s.type==="fixed")?"":"none";
+  next.textContent = s.type==="welcome"?"Start →":s.type==="summary"?"Start over":"Next →";
+  document.getElementById("hint").style.visibility = s.type==="summary"?"hidden":"visible";
+}
+
+function makeCard(s){
+  switch(s.type){
+    case "welcome": return el(`
+      <div class="emoji">🧾</div><div class="kicker">Offline · private</div>
+      <h2>Claim every tax relief you're entitled to</h2>
+      <p class="sub">Answer a few quick taps. We'll only show the reliefs that apply to you, then give you a summary to copy into e-Filing (Form BE).</p>
+      <div class="note">🔒 Everything stays on this device. Nothing is uploaded.<br>⚠️ Figures are compiled from published guides on LHDN rules. Always confirm against <b>hasil.gov.my</b> before filing. This is not tax advice.</div>
+      <div class="spacer"></div>
+      ${Object.keys(S.a).length?`<button class="opt" data-reset="1"><span class="e">🔄</span>Clear my saved answers</button>`:""}`);
+    case "choice": {
+      const cur = S.a[s.key] ?? (s.key==="ya"?S.ya:undefined);
+      return el(`<div class="emoji">${s.emoji}</div><div class="kicker">${s.kicker}</div><h2>${esc(s.title)}</h2>${s.sub?`<p class="sub">${esc(s.sub)}</p>`:""}
+        <div class="spacer"></div>
+        <div class="opts">${s.options.map(o=>`<button class="opt ${String(cur)===String(o.v)?"sel":""}" data-choice="${s.key}" data-v="${o.v}"><span class="e">${o.e}</span><span>${esc(o.l)}${o.sub?`<br><small style="color:var(--muted);font-weight:500">${esc(o.sub)}</small>`:""}</span></button>`).join("")}</div>`);
+    }
+    case "income": {
+      const presets=[36000,60000,96000,150000];
+      return el(`<div class="emoji">💰</div><div class="kicker">Income · ${S.ya}</div><h2>Roughly how much did you earn in ${S.ya}?</h2>
+        <p class="sub">Total yearly income before deductions (salary + bonus + other income). Used only to estimate your tax.</p>
+        <div class="big"><small>RM</small><span id="incVal">${S.income.toLocaleString("en-MY")}</span></div>
+        <div class="chips">${presets.map(p=>`<button class="chip ${S.income===p?"sel":""}" data-inc="${p}">${p>=1000?(p/1000)+"k":p}</button>`).join("")}</div>
+        <input id="incRange" type="range" min="0" max="400000" step="1000" value="${S.income}" aria-label="Yearly income">
+        <div class="note">Tip: your EA form from your employer shows this figure.</div>`);
+    }
+    case "kids": return el(`<div class="emoji">👧</div><div class="kicker">Child relief</div><h2>How many children in each group?</h2>
+        <p class="sub">Unmarried children. Tap + or −. Relief is per child.</p>
+        ${KIDS.map(k=>`<div class="stepper"><div class="lab">${esc(k.t)} <small>${k.sub?esc(k.sub)+" · ":""}${RM(k.rm)} each</small></div>
+          <div class="ctl"><button data-kid="${k.id}" data-d="-1">−</button><span class="n">${S.kids[k.id]||0}</span><button data-kid="${k.id}" data-d="1">+</button></div></div>`).join("")}
+        <div class="note">If you and your spouse are assessed separately, each child's relief is claimed by one parent (or shared).</div>`);
+    case "divider": {
+      const n = activeReliefs().filter(r=>!r.auto).length;
+      return el(`<div class="emoji">✅</div><div class="kicker">Profile done</div><h2>${n} reliefs may apply to you</h2>
+        <p class="sub">Next, set how much you spent on each. Tap a quick amount or slide. Tap <b>Not for me</b> to skip.</p>
+        <div class="note">Your RM9,000 individual relief is already included.</div>`);
+    }
+    case "fixed": {
+      const r=s.r;
+      if(S.amt[r.id]===undefined) S.amt[r.id]=1;
+      return el(`<div class="emoji">${r.e}</div><div class="kicker">${r.cat}</div><h2>${esc(r.t)}</h2>
+        <span class="cap">Fixed relief ${RM(r.cap)}</span>
+        <p class="sub">Based on your answers you qualify. Keep these ready:</p>
+        <ul class="docs">${r.docs.map(d=>`<li>${esc(d)}</li>`).join("")}</ul>
+        <div class="spacer"></div>
+        <div class="opts"><button class="opt ${S.amt[r.id]?"sel":""}" data-fixed="${r.id}" data-v="1"><span class="e">✅</span>Claim ${RM(r.cap)}</button>
+        <button class="opt ${!S.amt[r.id]?"sel":""}" data-fixed="${r.id}" data-v="0"><span class="e">✖️</span>Don't claim</button></div>`);
+    }
+    case "amount": {
+      const r=s.r, cap=capOf(r);
+      if(S.amt[r.id]===undefined && r.suggest) S.amt[r.id]=Math.round(r.suggest(S)/10)*10;
+      const v=Math.min(S.amt[r.id]||0, cap);
+      const scope = yaText(r.ya);
+      return el(`<div class="emoji">${r.e}</div><div class="kicker">${r.cat}</div><h2>${esc(r.t)}</h2>
+        <span class="cap">Up to ${RM(cap)}</span>
+        ${scope?`<p class="sub">${esc(scope)}</p>`:""}
+        ${amountUI(r.id, cap, v)}
+        ${r.suggest?`<div class="note">💡 Pre-filled estimate from your income. Check your EA form / statement.</div>`:""}
+        ${r.tip?`<div class="note">${esc(r.tip)}</div>`:""}
+        <div class="note">📎 Keep: ${r.docs.map(esc).join(" · ")}</div>`);
+    }
+    case "group": {
+      const r=s.r, subs=r.subs.filter(sb=>!sb.when||sb.when(S));
+      return el(`<div class="emoji">${r.e}</div><div class="kicker">${r.cat}</div><h2>${esc(r.t)}</h2>
+        <span class="cap">Up to ${RM(r.cap)} combined · <span id="grpTot">${RM(claimOf(r))}</span></span>
+        <div class="sublist">${subs.map(sb=>`<div class="item">${amountUI("sub:"+sb.id, subCap(sb), Math.min(S.sub[sb.id]||0, subCap(sb)), sb.t)}${sb.ya?`<div class="note" style="margin-top:0">${esc(yaText(sb.ya))}</div>`:""}</div>`).join("")}</div>
+        <div class="note">📎 Keep: ${r.docs.map(esc).join(" · ")}</div>`);
+    }
+    case "extras": return el(`<div class="emoji">🕌</div><div class="kicker">Rebates & deductions</div><h2>Zakat and donations</h2>
+        <p class="sub">Zakat reduces your tax directly (ringgit for ringgit). Approved donations reduce your income, up to 10% of it.</p>
+        ${amountUI("zakat", 10000, Math.min(S.zakat,10000), "Zakat / fitrah paid")}
+        <div style="height:10px"></div>
+        ${amountUI("donation", Math.max(1000, Math.round(S.income*0.10/100)*100), Math.min(S.donation, Math.max(1000,Math.round(S.income*0.10/100)*100)), "Donations to approved bodies")}
+        <div class="note">📎 Keep official receipts with the approval reference number.</div>`);
+    case "summary": return summaryCard();
+  }
+}
+
+function summaryCard(){
+  const c = compute();
+  const rows = [];
+  for(const r of activeReliefs()){ const v=claimOf(r); if(v>0) rows.push([r.e+" "+r.t, v, r]); }
+  if(S.a.hasKids==="yes") for(const k of KIDS){ const n=S.kids[k.id]||0; if(n) rows.push(["👧 Child — "+k.t+" ×"+n, n*k.rm, {docs:["Birth certificate / MyKid","Proof of study for 18+"]}]); }
+  const epf=claimOf(RELIEFS.find(r=>r.id==="epf")), life=claimOf(RELIEFS.find(r=>r.id==="life"));
+  const docs = new Set(); rows.forEach(r=>(r[2].docs||[]).forEach(d=>docs.add(d)));
+  if(S.zakat) docs.add("Zakat receipts"); if(S.donation) docs.add("Donation receipts (approved bodies)");
+  const unused = activeReliefs().filter(r=>!r.auto && !r.fixed && claimOf(r)===0).map(r=>r.t);
+  return el(`<div class="kicker">Your YA ${S.ya} summary</div><h2>Here's what to claim</h2>
+    <div class="hero"><div class="l">Total reliefs</div><div class="v">${RM(c.reliefs)}</div>
+      <div class="g"><div>Estimated tax<b>${RM(c.payable)}</b></div><div>Saved by reliefs<b>${RM(c.saved)}</b></div></div></div>
+    ${rows.map(r=>`<div class="sum-row"><span>${esc(r[0])}</span><span>${RM(r[1])}</span></div>`).join("")}
+    ${epf+life>7000?`<div class="note warn">EPF + life insurance are capped at RM7,000 combined; the extra ${RM(epf+life-7000)} was removed.</div>`:""}
+    <h3>Tax estimate</h3>
+    <div class="sum-row"><span>Income</span><span>${RM(S.income)}</span></div>
+    ${c.donation?`<div class="sum-row"><span>Less approved donations</span><span>− ${RM(c.donation)}</span></div>`:""}
+    <div class="sum-row"><span>Less reliefs</span><span>− ${RM(c.reliefs)}</span></div>
+    <div class="sum-row"><span>Chargeable income</span><span>${RM(c.chargeable)}</span></div>
+    <div class="sum-row"><span>Tax before rebates</span><span>${RM(c.grossTax)}</span></div>
+    ${c.rebate?`<div class="sum-row"><span>Rebate (income ≤ RM35k)</span><span>− ${RM(c.rebate)}</span></div>`:""}
+    ${c.zakat?`<div class="sum-row"><span>Zakat rebate</span><span>− ${RM(Math.min(c.zakat,c.grossTax-c.rebate>0?c.grossTax-c.rebate:0))}</span></div>`:""}
+    <div class="sum-row total"><span>Estimated tax payable</span><span>${RM(c.payable)}</span></div>
+    <div class="note">Compare this with the PCB (MTD) your employer deducted (on your EA form) to see if you'll get a refund.</div>
+    ${unused.length?`<h3>💡 Not used yet</h3><p class="sub" style="margin:0">${unused.map(esc).join(" · ")}</p>`:""}
+    <h3>📎 Documents to keep (7 years)</h3>
+    <ul class="docs">${[...docs].map(d=>`<li>${esc(d)}</li>`).join("")||"<li>None needed beyond your EA form</li>"}</ul>
+    <div class="actions"><button data-act="copy">📋 Copy summary</button><button data-act="print">🖨️ Print / PDF</button></div>
+    <div class="note">Estimate for resident individuals using the YA ${S.ya} tax bands (0%–30%). Not tax advice — confirm figures with LHDN before submitting on MyTax.</div>`);
+}
+
+function summaryText(){
+  const c=compute(); const lines=[`Tax relief summary — YA ${S.ya}`];
+  for(const r of activeReliefs()){ const v=claimOf(r); if(v>0) lines.push(`${r.t}: ${RM(v)}`); }
+  if(S.a.hasKids==="yes") for(const k of KIDS){ const n=S.kids[k.id]||0; if(n) lines.push(`Child — ${k.t} ×${n}: ${RM(n*k.rm)}`); }
+  lines.push("", `Total reliefs: ${RM(c.reliefs)}`, `Chargeable income: ${RM(c.chargeable)}`, `Estimated tax payable: ${RM(c.payable)}`);
+  if(S.zakat) lines.push(`Zakat: ${RM(S.zakat)}`);
+  if(c.donation) lines.push(`Approved donations: ${RM(c.donation)}`);
+  return lines.join("\n");
+}
+
+/* ============================================================ INTERACTION */
+function toast(t){ const x=document.getElementById("toast"); x.textContent=t; x.classList.add("show"); setTimeout(()=>x.classList.remove("show"),1600); }
+function go(d){
+  const s = steps[S.step];
+  if(s.type==="summary" && d>0){ if(!confirm("Start over and clear all answers?")) return; S = fresh(); current && current.remove(); current=null; render(1); return; }
+  if(d>0 && s.type==="choice" && S.a[s.key]===undefined && s.key!=="ya"){ toast("Tap an option to continue"); return; }
+  const ns = S.step + d; if(ns<0 || ns>=steps.length) return;
+  S.step = ns; render(d);
+  if(navigator.vibrate) try{navigator.vibrate(8);}catch(e){}
+}
+function refreshLive(){
+  const c=compute(); document.getElementById("runTotal").textContent=`Reliefs so far: ${RM(c.reliefs)}`;
+  const g=document.getElementById("grpTot"); const s=steps[S.step];
+  if(g && s.r) g.textContent = RM(claimOf(s.r));
+  save();
+}
+function setAmt(id, v){
+  if(id.startsWith("sub:")) S.sub[id.slice(4)] = v;
+  else if(id==="zakat") S.zakat = v; else if(id==="donation") S.donation = v;
+  else S.amt[id] = v;
+}
+function syncAmtBox(box, v){
+  box.querySelector(".val").textContent = Math.round(v).toLocaleString("en-MY");
+  box.querySelector("input[type=range]").value = v;
+  box.querySelectorAll(".chip").forEach(ch=>ch.classList.toggle("sel", +ch.dataset.set===Math.round(v)));
+}
+
+stage.addEventListener("click", e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  if(b.dataset.choice){
+    const key=b.dataset.choice; let v=b.dataset.v;
+    if(key==="ya"){ S.ya=+v; } else S.a[key]=v;
+    b.parentElement.querySelectorAll(".opt").forEach(o=>o.classList.toggle("sel", o===b));
+    setTimeout(()=>go(1), 220);   // auto-advance: one tap per question
+    return;
+  }
+  if(b.dataset.fixed){ S.amt[b.dataset.fixed] = +b.dataset.v; b.parentElement.querySelectorAll(".opt").forEach(o=>o.classList.toggle("sel",o===b)); refreshLive(); setTimeout(()=>go(1),220); return; }
+  if(b.dataset.set!==undefined){ const box=b.closest("[data-amt]"); const v=+b.dataset.set; setAmt(box.dataset.amt, v); syncAmtBox(box, v); refreshLive(); return; }
+  if(b.dataset.inc){ S.income=+b.dataset.inc; document.getElementById("incVal").textContent=S.income.toLocaleString("en-MY"); document.getElementById("incRange").value=S.income;
+    b.parentElement.querySelectorAll(".chip").forEach(c=>c.classList.toggle("sel",c===b)); refreshLive(); return; }
+  if(b.dataset.kid){ const k=b.dataset.kid; S.kids[k]=Math.max(0,Math.min(12,(S.kids[k]||0)+ +b.dataset.d)); b.parentElement.querySelector(".n").textContent=S.kids[k]; refreshLive(); return; }
+  if(b.dataset.reset){ S=fresh(); save(); current.remove(); current=null; render(1); toast("Answers cleared"); return; }
+  if(b.dataset.act==="copy"){ const t=summaryText(); (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast("Summary copied"),()=>{prompt("Copy your summary:",t);}); return; }
+  if(b.dataset.act==="print"){ window.print(); return; }
+});
+stage.addEventListener("input", e=>{
+  const r=e.target; if(r.type!=="range") return;
+  if(r.id==="incRange"){ S.income=+r.value; document.getElementById("incVal").textContent=S.income.toLocaleString("en-MY");
+    r.parentElement.querySelectorAll("[data-inc]").forEach(c=>c.classList.toggle("sel",+c.dataset.inc===S.income)); refreshLive(); return; }
+  const box=r.closest("[data-amt]"); if(!box) return; const v=+r.value; setAmt(box.dataset.amt, v); syncAmtBox(box, v); refreshLive();
+});
+
+document.getElementById("nextBtn").onclick = ()=>go(1);
+document.getElementById("backBtn").onclick = ()=>go(-1);
+document.getElementById("skipBtn").onclick = ()=>{
+  const s=steps[S.step];
+  if(s.type==="amount") S.amt[s.r.id]=0;
+  if(s.type==="fixed") S.amt[s.r.id]=0;
+  if(s.type==="group") s.r.subs.forEach(sb=>S.sub[sb.id]=0);
+  go(1);
+};
+
+/* Swipe: horizontal gestures that don't start on a slider */
+let sx=0, sy=0, st=0, tracking=false;
+stage.addEventListener("touchstart", e=>{ if(e.target.closest("input[type=range]")) {tracking=false;return;} const t=e.touches[0]; sx=t.clientX; sy=t.clientY; st=Date.now(); tracking=true; }, {passive:true});
+stage.addEventListener("touchend", e=>{
+  if(!tracking) return; tracking=false;
+  const t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy;
+  if(Math.abs(dx)>60 && Math.abs(dx)>Math.abs(dy)*1.5 && Date.now()-st<700) go(dx<0?1:-1);
+}, {passive:true});
+document.addEventListener("keydown", e=>{ if(e.key==="ArrowRight") go(1); if(e.key==="ArrowLeft") go(-1); });
+
+/* Theme toggle (remembered) */
+const themeKey="my-tax-relief-theme";
+try{ const th=localStorage.getItem(themeKey); if(th) document.documentElement.dataset.theme=th; }catch(e){}
+document.getElementById("themeBtn").onclick=()=>{
+  const dark = document.documentElement.dataset.theme ? document.documentElement.dataset.theme==="dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  document.documentElement.dataset.theme = dark?"light":"dark";
+  try{ localStorage.setItem(themeKey, document.documentElement.dataset.theme); }catch(e){}
+};
+
+render(1);
+</script>
+</body>
+</html>
