@@ -8,6 +8,14 @@ optional AI receipt checking.
 | `index.html` | The main app. Works offline. AI receipt checking is optional and uses your own Anthropic API key |
 | `portal.html` | The same app built to run as a page on claude.ai, using your Claude account instead of an API key |
 
+## How it works
+
+Eight sections, one swipe apart: **Start → You & family → Health → Lifestyle → Kids & learning → Savings & insurance →
+Home & giving → Summary**. Inside a section you only scroll and tap. Questions are one-tap buttons that reveal
+follow-ups in place, and each relief is a row you tap to open and set an amount. Sections with nothing relevant to you
+are skipped, and the tab bar at the top jumps straight to any section. Your relief total and estimated tax stay
+visible at the bottom the whole time.
+
 ## Use it on your phone
 
 **Option 1: host it (recommended).** In this GitHub repo, go to **Settings → Pages**, set the source to this branch and
