@@ -1,0 +1,136 @@
+/* Theme prototypes for the Tax Relief Helper.
+   Each skin overrides the app's design tokens plus a few structural details.
+   Activate with <html data-skin="...">. */
+
+/* ---------------------------------------------------------------- 1. HORIZON — clean fintech */
+html[data-skin="horizon"]{
+  --bg:#f5f6fb; --card:#ffffff; --ink:#0f172a; --muted:#64748b; --line:#e5e8f1;
+  --brand:#4f46e5; --brand-ink:#ffffff; --brand-soft:#eef0ff; --accent:#f59e0b; --danger:#dc2626; --ok:#16a34a;
+  --shadow:0 1px 2px rgba(15,23,42,.04), 0 12px 32px rgba(79,70,229,.08);
+  color-scheme:light;
+}
+html[data-skin="horizon"] body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;letter-spacing:-.005em}
+html[data-skin="horizon"] header{background:var(--card);box-shadow:0 1px 0 var(--line)}
+html[data-skin="horizon"] header h1{font-weight:800;font-size:16px}
+html[data-skin="horizon"] .card{border-radius:24px;border:1px solid var(--line)}
+html[data-skin="horizon"] h2{font-weight:800;letter-spacing:-.02em}
+html[data-skin="horizon"] .hero{background:linear-gradient(135deg,#4f46e5 0%,#6d5df6 55%,#8b7bff 100%);border-radius:22px}
+html[data-skin="horizon"] .tabs button{background:var(--card);border:1px solid var(--line)}
+html[data-skin="horizon"] .tabs button.cur{background:var(--ink);color:#fff;border-color:var(--ink)}
+html[data-skin="horizon"] .seg button{border-width:1.5px;border-radius:12px}
+html[data-skin="horizon"] .rel{border-width:1px;border-radius:18px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+html[data-skin="horizon"] .nav .next{border-radius:14px;box-shadow:0 10px 24px rgba(79,70,229,.3)}
+html[data-skin="horizon"] .kicker{color:var(--brand);letter-spacing:.6px}
+
+/* ---------------------------------------------------------------- 2. CIVIC TRUST — government-grade */
+html[data-skin="civic"]{
+  --bg:#eef1f5; --card:#ffffff; --ink:#0d1b2e; --muted:#566377; --line:#d5dbe4;
+  --brand:#12305b; --brand-ink:#ffffff; --brand-soft:#e3e9f3; --accent:#c79a1e; --danger:#b42318; --ok:#1f7a3e;
+  --shadow:0 1px 3px rgba(13,27,46,.12);
+  color-scheme:light;
+}
+html[data-skin="civic"] body{font-family:"Source Sans 3","Segoe UI",Roboto,-apple-system,sans-serif}
+html[data-skin="civic"] header{background:var(--brand);color:#fff;border-bottom:4px solid var(--accent);padding-bottom:10px}
+html[data-skin="civic"] header h1{color:#fff;font-family:Georgia,"Times New Roman",serif;font-size:17px;letter-spacing:.2px}
+html[data-skin="civic"] header .pill{background:var(--accent);color:#1b1400}
+html[data-skin="civic"] header .iconbtn{color:#fff}
+html[data-skin="civic"] .tabs{background:var(--card);padding:8px 16px;border-bottom:1px solid var(--line)}
+html[data-skin="civic"] .tabs button{border-radius:6px;background:var(--bg)}
+html[data-skin="civic"] .tabs button.cur{background:var(--brand)}
+html[data-skin="civic"] .card{border-radius:8px;border:1px solid var(--line);border-top:4px solid var(--brand)}
+html[data-skin="civic"] h2{font-family:Georgia,"Times New Roman",serif;font-weight:700;color:var(--brand)}
+html[data-skin="civic"] .kicker{color:var(--accent);font-size:11.5px;letter-spacing:1.4px}
+html[data-skin="civic"] .seg button,html[data-skin="civic"] .chip{border-radius:6px;border-width:1.5px}
+html[data-skin="civic"] .rel{border-radius:6px;border-width:1px;border-left:4px solid var(--line)}
+html[data-skin="civic"] .rel.has{border-left-color:var(--accent)}
+html[data-skin="civic"] .hero{border-radius:6px;background:var(--brand);border-bottom:4px solid var(--accent)}
+html[data-skin="civic"] .nav .next,html[data-skin="civic"] .nav .back,html[data-skin="civic"] .snap{border-radius:6px}
+html[data-skin="civic"] .auto{border-radius:6px;border:1px dashed var(--brand)}
+html[data-skin="civic"] .note{border-radius:4px;border-left:3px solid var(--accent)}
+
+/* ---------------------------------------------------------------- 3. ONYX — dark premium */
+html[data-skin="onyx"]{
+  --bg:#090b10; --card:#12161f; --ink:#eef1f6; --muted:#8b95a7; --line:#232a37;
+  --brand:#2fd59a; --brand-ink:#04140d; --brand-soft:#11322a; --accent:#e9c46a; --danger:#f87171; --ok:#4ade80;
+  --shadow:0 20px 50px rgba(0,0,0,.55);
+  color-scheme:dark;
+}
+html[data-skin="onyx"] body{background:radial-gradient(120% 60% at 50% -10%,#14281f 0%,#090b10 55%) fixed;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}
+html[data-skin="onyx"] header h1{font-weight:600;letter-spacing:.4px}
+html[data-skin="onyx"] header .pill{background:transparent;border:1px solid var(--accent);color:var(--accent)}
+html[data-skin="onyx"] .card{background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01)) ,var(--card);border:1px solid rgba(255,255,255,.07);border-radius:26px}
+html[data-skin="onyx"] h2{font-weight:600;letter-spacing:-.01em}
+html[data-skin="onyx"] .kicker{color:var(--accent);letter-spacing:2px;font-weight:600}
+html[data-skin="onyx"] .tabs button{background:#151a24;border:1px solid var(--line)}
+html[data-skin="onyx"] .tabs button.cur{background:var(--accent);color:#1a1404}
+html[data-skin="onyx"] .seg button{border-color:var(--line);background:#0e1219}
+html[data-skin="onyx"] .seg button.sel{background:var(--brand);color:var(--brand-ink);box-shadow:0 0 0 4px rgba(47,213,154,.15)}
+html[data-skin="onyx"] .rel{background:#0e1219;border-color:var(--line)}
+html[data-skin="onyx"] .rel.has{border-color:rgba(47,213,154,.5);box-shadow:inset 0 0 0 1px rgba(47,213,154,.15)}
+html[data-skin="onyx"] .hero{background:linear-gradient(140deg,#1d3b31 0%,#0f2a22 45%,#2b2410 100%);color:#fff;border:1px solid rgba(233,196,106,.35)}
+html[data-skin="onyx"] .hero .v{color:var(--accent)}
+html[data-skin="onyx"] .nav .next{background:linear-gradient(90deg,#2fd59a,#9be15d);color:#04140d}
+html[data-skin="onyx"] .nav .back{background:#151a24;color:var(--ink)}
+html[data-skin="onyx"] .stepper button,html[data-skin="onyx"] .how .n{background:#13241f}
+html[data-skin="onyx"] .note{background:#0e1219;border:1px solid var(--line)}
+
+/* ---------------------------------------------------------------- 4. PANDAN — friendly & calm */
+html[data-skin="pandan"]{
+  --bg:#e9f4ec; --card:#f6fbf7; --ink:#1d3326; --muted:#5d7566; --line:#d3e6d8;
+  --brand:#1f8a4c; --brand-ink:#ffffff; --brand-soft:#d6efdf; --accent:#ffc933; --danger:#d9480f; --ok:#2b8a3e;
+  --shadow:8px 8px 20px rgba(91,130,104,.22), -8px -8px 20px rgba(255,255,255,.9);
+  color-scheme:light;
+}
+html[data-skin="pandan"] body{font-family:"Nunito","Quicksand",ui-rounded,"SF Pro Rounded",-apple-system,sans-serif}
+html[data-skin="pandan"] header h1{font-weight:800}
+html[data-skin="pandan"] header .pill{background:var(--accent);color:#3d2c00}
+html[data-skin="pandan"] .card{border-radius:34px;background:var(--card)}
+html[data-skin="pandan"] h2{font-weight:900;font-size:27px}
+html[data-skin="pandan"] .kicker{color:var(--brand);background:var(--brand-soft);display:inline-block;padding:4px 10px;border-radius:99px;align-self:flex-start}
+html[data-skin="pandan"] .tabs button{background:var(--card);box-shadow:4px 4px 10px rgba(91,130,104,.18),-4px -4px 10px rgba(255,255,255,.9)}
+html[data-skin="pandan"] .tabs button.cur{background:var(--brand)}
+html[data-skin="pandan"] .seg button{border:0;border-radius:20px;background:var(--card);box-shadow:inset 3px 3px 7px rgba(91,130,104,.18),inset -3px -3px 7px rgba(255,255,255,.95)}
+html[data-skin="pandan"] .seg button.sel{background:var(--brand);box-shadow:4px 4px 12px rgba(31,138,76,.35)}
+html[data-skin="pandan"] .chip{border:0;background:var(--card);box-shadow:3px 3px 8px rgba(91,130,104,.2),-3px -3px 8px #fff}
+html[data-skin="pandan"] .chip.sel{background:var(--accent);color:#3d2c00}
+html[data-skin="pandan"] .rel{border:0;border-radius:24px;box-shadow:5px 5px 14px rgba(91,130,104,.18),-5px -5px 14px rgba(255,255,255,.9)}
+html[data-skin="pandan"] .rel.has{box-shadow:5px 5px 14px rgba(91,130,104,.18),-5px -5px 14px rgba(255,255,255,.9),inset 0 0 0 2px var(--accent)}
+html[data-skin="pandan"] .hero{border-radius:28px;background:linear-gradient(135deg,#1f8a4c,#3aa564)}
+html[data-skin="pandan"] .hero .g div{background:rgba(255,201,51,.25)}
+html[data-skin="pandan"] .nav .next{border-radius:24px;background:var(--brand);box-shadow:6px 6px 16px rgba(31,138,76,.35)}
+html[data-skin="pandan"] .nav .back{border-radius:24px}
+html[data-skin="pandan"] .stepper{border:0;border-radius:22px;background:var(--card);box-shadow:inset 3px 3px 7px rgba(91,130,104,.15),inset -3px -3px 7px #fff}
+html[data-skin="pandan"] .stepper button{border-radius:16px;background:var(--accent);color:#3d2c00}
+html[data-skin="pandan"] .note{border-radius:18px;background:#eef7f0}
+html[data-skin="pandan"] .auto{border-radius:22px;background:#fff6d6}
+
+/* ---------------------------------------------------------------- 5. LEDGER — editorial & precise */
+html[data-skin="ledger"]{
+  --bg:#f7f6f2; --card:#fcfbf8; --ink:#111111; --muted:#5f5f5a; --line:#1111111f;
+  --brand:#111111; --brand-ink:#ffffff; --brand-soft:#ecebe5; --accent:#d62828; --danger:#d62828; --ok:#2d6a4f;
+  --shadow:none;
+  color-scheme:light;
+}
+html[data-skin="ledger"] body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif}
+html[data-skin="ledger"] header{border-bottom:2px solid var(--ink)}
+html[data-skin="ledger"] header h1{text-transform:uppercase;letter-spacing:2px;font-size:13px;font-weight:800}
+html[data-skin="ledger"] header .pill{background:transparent;color:var(--accent);border-radius:0;font-family:ui-monospace,"SF Mono",Menlo,monospace}
+html[data-skin="ledger"] .tabs button{border-radius:0;background:transparent;border:0;border-bottom:2px solid transparent;filter:grayscale(1)}
+html[data-skin="ledger"] .tabs button.cur{background:transparent;color:var(--ink);border-bottom-color:var(--accent);filter:none}
+html[data-skin="ledger"] .card{border-radius:0;border:1px solid var(--ink);inset:10px 12px 10px}
+html[data-skin="ledger"] .emoji{filter:grayscale(1)}
+html[data-skin="ledger"] h2{font-size:30px;font-weight:800;letter-spacing:-.03em;line-height:1.05}
+html[data-skin="ledger"] .kicker{color:var(--accent);font-family:ui-monospace,"SF Mono",Menlo,monospace;font-weight:600;letter-spacing:.5px}
+html[data-skin="ledger"] .big,html[data-skin="ledger"] .relhd .v,html[data-skin="ledger"] .sum-row span:last-child,html[data-skin="ledger"] .totals b,html[data-skin="ledger"] .hero .v{font-family:ui-monospace,"SF Mono",Menlo,monospace;letter-spacing:-.02em}
+html[data-skin="ledger"] .seg button,html[data-skin="ledger"] .chip,html[data-skin="ledger"] .stepper,html[data-skin="ledger"] .stepper button{border-radius:0;border-width:1px;border-color:var(--ink)}
+html[data-skin="ledger"] .seg button.sel,html[data-skin="ledger"] .chip.sel{background:var(--ink);color:#fff}
+html[data-skin="ledger"] .rel{border-radius:0;border:0;border-top:1px solid var(--ink);margin:0}
+html[data-skin="ledger"] .rel:last-of-type{border-bottom:1px solid var(--ink)}
+html[data-skin="ledger"] .rel.has .relhd .v{color:var(--accent)}
+html[data-skin="ledger"] .relhd .e{filter:grayscale(1)}
+html[data-skin="ledger"] .hero{border-radius:0;background:var(--ink)}
+html[data-skin="ledger"] .hero .g div{border-radius:0;background:transparent;border-left:2px solid var(--accent)}
+html[data-skin="ledger"] .note,html[data-skin="ledger"] .auto{border-radius:0;background:transparent;border:1px solid var(--line)}
+html[data-skin="ledger"] .nav .next,html[data-skin="ledger"] .nav .back,html[data-skin="ledger"] .snap,html[data-skin="ledger"] .actions button{border-radius:0}
+html[data-skin="ledger"] .nav .back{border:1px solid var(--ink);box-shadow:none}
+html[data-skin="ledger"] .how .n{border-radius:0;background:var(--ink);color:#fff}
