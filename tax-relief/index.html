@@ -3,29 +3,37 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="theme-color" content="#0f766e">
+<meta name="theme-color" content="#4f46e5">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Relief Helper">
 <title>Tax Relief Helper</title>
 <style>
 :root{
-  --bg:#f4f6f5; --card:#ffffff; --ink:#14201d; --muted:#5c6b67; --line:#dfe5e3;
-  --brand:#0f766e; --brand-ink:#ffffff; --brand-soft:#d9f0ec; --accent:#f59e0b; --danger:#c2410c; --ok:#15803d;
-  --shadow:0 10px 30px rgba(15,40,35,.10);
+  /* Horizon: clean fintech. Indigo accent on cool whites. */
+  --bg:#f5f6fb; --card:#ffffff; --ink:#0f172a; --muted:#64748b; --line:#e5e8f1;
+  --brand:#4f46e5; --brand-ink:#ffffff; --brand-soft:#eef0ff; --accent:#f59e0b; --danger:#dc2626; --ok:#16a34a;
+  --shadow:0 1px 2px rgba(15,23,42,.04), 0 12px 32px rgba(79,70,229,.08);
+  --hero:linear-gradient(135deg,#4f46e5 0%,#6d5df6 55%,#8b7bff 100%);
+  --tab-cur-bg:#0f172a; --tab-cur-ink:#ffffff;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#0c1311; --card:#15201d; --ink:#e8efed; --muted:#9db0ab; --line:#26332f;
-    --brand:#2dd4bf; --brand-ink:#04201c; --brand-soft:#123a34; --accent:#fbbf24; --danger:#fb923c; --ok:#4ade80;
-    --shadow:0 10px 30px rgba(0,0,0,.4); color-scheme:dark;
+    --bg:#0b1020; --card:#141a2e; --ink:#e7eaf6; --muted:#94a0bf; --line:#252d48;
+    --brand:#8b85ff; --brand-ink:#0b0d24; --brand-soft:#232a55; --accent:#fbbf24; --danger:#f87171; --ok:#4ade80;
+    --shadow:0 12px 32px rgba(0,0,0,.45);
+    --hero:linear-gradient(135deg,#3b33c9 0%,#5546e0 55%,#6f62f0 100%);
+    --tab-cur-bg:#e7eaf6; --tab-cur-ink:#0b1020;
+    color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
-  --bg:#0c1311; --card:#15201d; --ink:#e8efed; --muted:#9db0ab; --line:#26332f;
-  --brand:#2dd4bf; --brand-ink:#04201c; --brand-soft:#123a34; --accent:#fbbf24; --danger:#fb923c; --ok:#4ade80;
-  --shadow:0 10px 30px rgba(0,0,0,.4);
+  --bg:#0b1020; --card:#141a2e; --ink:#e7eaf6; --muted:#94a0bf; --line:#252d48;
+  --brand:#8b85ff; --brand-ink:#0b0d24; --brand-soft:#232a55; --accent:#fbbf24; --danger:#f87171; --ok:#4ade80;
+  --shadow:0 12px 32px rgba(0,0,0,.45);
+  --hero:linear-gradient(135deg,#3b33c9 0%,#5546e0 55%,#6f62f0 100%);
+  --tab-cur-bg:#e7eaf6; --tab-cur-ink:#0b1020;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;overscroll-behavior:none}
@@ -177,6 +185,20 @@ details.fallback summary{font-weight:700;cursor:pointer;padding:4px 0}
 .totals b{color:var(--ink);font-variant-numeric:tabular-nums;font-size:14px}
 #hint{flex:1;text-align:center;font-size:12px}
 .inc-chips .chip{flex:1 1 0}
+/* ---- Horizon structure ---- */
+body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;letter-spacing:-.005em}
+header{background:var(--card);box-shadow:0 1px 0 var(--line)}
+header h1{font-weight:800;font-size:16px}
+.card{border-radius:24px;border:1px solid var(--line)}
+h2{font-weight:800;letter-spacing:-.02em}
+.hero{background:var(--hero);border-radius:22px;color:#fff}
+.tabs button{background:var(--card);border:1px solid var(--line)}
+.tabs button.cur{background:var(--tab-cur-bg);color:var(--tab-cur-ink);border-color:var(--tab-cur-bg)}
+.tabs button.done{border-color:color-mix(in srgb,var(--brand) 40%,var(--line))}
+.seg button{border-width:1.5px;border-radius:12px}
+.rel{border-width:1px;border-radius:18px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.nav .next{border-radius:14px;box-shadow:0 10px 24px color-mix(in srgb,var(--brand) 35%,transparent)}
+.kicker{color:var(--brand);letter-spacing:.6px}
 </style>
 </head>
 <body>
