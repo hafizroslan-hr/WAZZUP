@@ -98,12 +98,39 @@ h3{font-size:15px;margin:18px 0 6px}
   main{overflow:visible}
   .card{position:static;box-shadow:none;inset:auto}
 }
+.sheet{position:fixed;inset:0;background:var(--bg);z-index:20;display:none;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.sheet.open{display:flex}
+.sheet .top{display:flex;align-items:center;gap:10px;padding:12px 16px}
+.sheet .top h1{flex:1;font-size:17px;margin:0}
+.sheet .body{flex:1;overflow-y:auto;padding:0 16px 24px}
+.panel{background:var(--card);border-radius:20px;box-shadow:var(--shadow);padding:18px;margin-bottom:14px}
+.snap{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:56px;border-radius:16px;border:0;background:var(--brand);color:var(--brand-ink);font-size:17px;font-weight:700}
+.snap.alt{background:var(--brand-soft);color:var(--brand)}
+.thumb{width:100%;max-height:260px;object-fit:contain;border-radius:14px;background:var(--bg);margin-top:12px}
+textarea{width:100%;min-height:110px;border:2px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);padding:12px;font:15px/1.4 inherit;font-family:inherit;margin-top:8px;resize:vertical}
+.verdict{border-radius:16px;padding:14px;margin-top:12px}
+.verdict.ok{background:color-mix(in srgb,var(--ok) 16%,transparent)}
+.verdict.maybe{background:color-mix(in srgb,var(--accent) 18%,transparent)}
+.verdict.no{background:color-mix(in srgb,var(--danger) 16%,transparent)}
+.verdict h4{margin:0 0 4px;font-size:17px}
+.verdict p{margin:4px 0;font-size:14px}
+.cats{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.rlist .r{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.rlist .r:first-child{border-top:0}
+.rlist img{width:52px;height:52px;object-fit:cover;border-radius:10px;background:var(--bg);flex:0 0 52px}
+.rlist .m{flex:1;font-size:14px;min-width:0}
+.rlist .m b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rlist .x{border:0;background:transparent;color:var(--muted);font-size:20px;width:40px;height:40px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+.badge{position:absolute;top:2px;right:2px;min-width:18px;height:18px;border-radius:9px;background:var(--accent);color:#000;font-size:11px;font-weight:800;display:none;align-items:center;justify-content:center;padding:0 5px}
+.danger{background:var(--danger)!important;color:#fff!important}
 </style>
 </head>
 <body>
 <header>
   <h1>🇲🇾 Tax Relief Helper</h1>
   <span class="pill" id="yaPill">YA 2026</span>
+  <button class="iconbtn" id="receiptBtn" aria-label="Check a receipt" style="position:relative;font-size:22px">📷<span class="badge" id="rcBadge"></span></button>
   <button class="iconbtn" id="themeBtn" aria-label="Switch theme">◐</button>
 </header>
 <div class="progress"><i id="bar"></i></div>
@@ -117,6 +144,31 @@ h3{font-size:15px;margin:18px 0 6px}
 </div>
 <div class="toast" id="toast"></div>
 
+<div class="sheet" id="sheet" role="dialog" aria-label="Receipt checker">
+  <div class="top"><button class="iconbtn" id="sheetClose" aria-label="Close">✕</button><h1>📷 Receipt checker</h1><span class="pill" id="sheetYa"></span></div>
+  <div class="body">
+    <div class="panel">
+      <div class="kicker">Step 1 · Snap</div>
+      <p class="sub" style="margin:6px 0 12px">Take a photo of the receipt. It's kept on this phone as your record.</p>
+      <label class="snap" for="photoIn">📸 Snap receipt</label>
+      <input id="photoIn" type="file" accept="image/*" capture="environment" hidden>
+      <img id="photoPrev" class="thumb" alt="" hidden>
+    </div>
+    <div class="panel">
+      <div class="kicker">Step 2 · Read the text</div>
+      <p class="sub" style="margin:6px 0 0">Tap the box, then choose <b>Scan Text</b> (the <b>⧉</b> icon above the keyboard on iPhone) and point at the receipt. The text is read on your phone, offline. You can also just type the shop name and item.</p>
+      <textarea id="rcText" placeholder="Tap here → Scan Text, or type e.g. &quot;Popular Bookstore – novel RM45&quot;"></textarea>
+      <button class="snap alt" id="rcCheck" style="margin-top:10px">🔍 Check eligibility</button>
+      <div id="rcResult"></div>
+    </div>
+    <div class="panel">
+      <div class="kicker">Saved receipts · <span id="rcCount">0</span></div>
+      <div class="rlist" id="rcList"></div>
+    </div>
+    <div class="note">This checker matches keywords against LHDN relief rules. It's a guide, not a ruling. When in doubt, keep the receipt and confirm with LHDN (HASiL Contact Centre or hasil.gov.my).</div>
+  </div>
+</div>
+
 <script>
 "use strict";
 /* ============================================================
@@ -126,6 +178,7 @@ h3{font-size:15px;margin:18px 0 6px}
    Figures compiled from published guides; verify against LHDN (hasil.gov.my).
    ============================================================ */
 const RM = n => "RM" + Math.round(n).toLocaleString("en-MY");
+const RM2 = n => "RM" + Number(n).toLocaleString("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2});
 const BANDS = [[5000,0],[15000,.01],[15000,.03],[15000,.06],[20000,.11],[30000,.19],[300000,.25],[200000,.26],[1400000,.28],[Infinity,.30]];
 function taxOn(ci){let t=0,left=Math.max(0,ci);for(const [w,r] of BANDS){const x=Math.min(left,w);t+=x*r;left-=x;if(left<=0)break;}return t;}
 
@@ -193,7 +246,7 @@ const KIDS = [
 
 /* ============================================================ STATE */
 const KEY = "my-tax-relief-helper-v1";
-const fresh = () => ({ya:2026, income:60000, a:{}, amt:{}, sub:{}, kids:{}, zakat:0, donation:0, step:0});
+const fresh = () => ({ya:2026, income:60000, a:{}, amt:{}, sub:{}, kids:{}, zakat:0, donation:0, step:0, receipts:[]});
 let S = fresh();
 try{ const saved = JSON.parse(localStorage.getItem(KEY)||"null"); if(saved && saved.a) S = Object.assign(fresh(), saved); }catch(e){}
 const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} };
@@ -292,6 +345,7 @@ function render(dir){
   S.step = Math.max(0, Math.min(S.step, steps.length-1));
   const s = steps[S.step];
   const card = makeCard(s);
+  if(current && dir===0){ current.remove(); current=null; }
   if(current){
     const old = current;
     old.classList.add(dir>0?"out-left":"out-right");
@@ -374,6 +428,7 @@ function makeCard(s){
         <span class="cap">Up to ${RM(cap)}</span>
         ${scope?`<p class="sub">${esc(scope)}</p>`:""}
         ${amountUI(r.id, cap, v)}
+        ${rcTally(r.id)}
         ${r.suggest?`<div class="note">💡 Pre-filled estimate from your income. Check your EA form / statement.</div>`:""}
         ${r.tip?`<div class="note">${esc(r.tip)}</div>`:""}
         <div class="note">📎 Keep: ${r.docs.map(esc).join(" · ")}</div>`);
@@ -438,9 +493,15 @@ function summaryText(){
 
 /* ============================================================ INTERACTION */
 function toast(t){ const x=document.getElementById("toast"); x.textContent=t; x.classList.add("show"); setTimeout(()=>x.classList.remove("show"),1600); }
+let armedReset=false, armTimer=0;
 function go(d){
   const s = steps[S.step];
-  if(s.type==="summary" && d>0){ if(!confirm("Start over and clear all answers?")) return; S = fresh(); current && current.remove(); current=null; render(1); return; }
+  if(s.type==="summary" && d>0){
+    const nb=document.getElementById("nextBtn");
+    if(!armedReset){ armedReset=true; nb.textContent="Tap again to clear all"; nb.classList.add("danger"); clearTimeout(armTimer); armTimer=setTimeout(()=>{armedReset=false; nb.classList.remove("danger"); nb.textContent="Start over";},3000); return; }
+    armedReset=false; clearTimeout(armTimer); nb.classList.remove("danger");
+    const keepRc=S.receipts; S = fresh(); S.receipts=keepRc||[]; S.step=0; save();
+    if(current) current.remove(); current=null; render(-1); toast("Cleared. Let's start again"); return; }
   if(d>0 && s.type==="choice" && S.a[s.key]===undefined && s.key!=="ya"){ toast("Tap an option to continue"); return; }
   const ns = S.step + d; if(ns<0 || ns>=steps.length) return;
   S.step = ns; render(d);
@@ -478,7 +539,7 @@ stage.addEventListener("click", e=>{
     b.parentElement.querySelectorAll(".chip").forEach(c=>c.classList.toggle("sel",c===b)); refreshLive(); return; }
   if(b.dataset.kid){ const k=b.dataset.kid; S.kids[k]=Math.max(0,Math.min(12,(S.kids[k]||0)+ +b.dataset.d)); b.parentElement.querySelector(".n").textContent=S.kids[k]; refreshLive(); return; }
   if(b.dataset.reset){ S=fresh(); save(); current.remove(); current=null; render(1); toast("Answers cleared"); return; }
-  if(b.dataset.act==="copy"){ const t=summaryText(); (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast("Summary copied"),()=>{prompt("Copy your summary:",t);}); return; }
+  if(b.dataset.act==="copy"){ const t=summaryText(); (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast("Summary copied"),()=>showCopyBox(t)); return; }
   if(b.dataset.act==="print"){ window.print(); return; }
 });
 stage.addEventListener("input", e=>{
@@ -517,6 +578,233 @@ document.getElementById("themeBtn").onclick=()=>{
   try{ localStorage.setItem(themeKey, document.documentElement.dataset.theme); }catch(e){}
 };
 
+/* ============================================================
+   RECEIPT CHECKER — fully offline keyword rules.
+   Text comes from iOS/Android on-device "Scan Text" (Live Text) or typing.
+   ============================================================ */
+const RULES = [
+  // [relief target, label, keywords, conditions note, exclusions]
+  {to:"lifestyle", label:"Lifestyle (books, gadgets, internet)", cap:2500,
+   kw:["book","buku","novel","majalah","magazine","newspaper","akhbar","kindle","e-book","ebook","popular bookstore","mph","kinokuniya","bookxcess","smartphone","handphone","telefon","iphone","samsung galaxy","xiaomi","oppo","vivo","huawei","honor","realme","tablet","ipad","laptop","notebook","macbook","computer","komputer","desktop pc","imac","internet","broadband","fibre","fiber","unifi","time fibre","maxis home","celcom home","digi home","yes 5g","postpaid","data plan","jalur lebar","udemy","coursera","linkedin learning","skillsfuture"],
+   note:"Must be for personal use (not business) and the internet bill must be in your name. Covers you, spouse and children.",
+   no:["phone case","casing","screen protector","tempered glass","earphone","earbud","headphone","airpods","charger","power bank","powerbank","smartwatch","smart watch","apple watch","printer","ink","toner","game console","playstation","nintendo","xbox","stationery","alat tulis","pen ","pencil"],
+   noWhy:"Accessories (cases, chargers, earphones), smartwatches, printers, consoles and stationery are not covered by lifestyle relief."},
+  {to:"sports", label:"Sports & fitness", cap:1000,
+   kw:["gym","fitness","anytime fitness","celebrity fitness","fitness first","decathlon","sport","sukan","badminton","racket","raket","shuttlecock","futsal","court","gelanggang","swimming","kolam renang","yoga","pilates","marathon","half marathon","run ","larian","race kit","registration fee","bicycle","basikal","treadmill","dumbbell","golf","tennis","pickleball","football","bola","martial","taekwondo","silat","karate","climbing","training fee","coach"],
+   note:"Covers sports equipment, facility rental/entrance, competition registration and gym/training fees, for you, spouse, children or parents.",
+   no:["shoe","kasut","sneaker","jersey","attire","apparel","pakaian","t-shirt","tshirt","shorts","legging","sock","stokin","cap ","topi","supplement","protein","whey","massage","spa"],
+   noWhy:"Sports clothing, shoes, supplements and massages are not eligible. Only equipment, facility, competition and training fees."},
+  {to:"medical:vaccine", label:"Medical — vaccination", cap:1000,
+   kw:["vaccin","vaksin","immuni","imunisasi","influenza shot","flu shot","hpv","pneumococcal","rotavirus","hepatitis","shingles","dengue vaccine"],
+   note:"For you, spouse or children. YA 2026: any NPRA-registered vaccine. Sub-limit RM1,000 within the RM10,000 medical relief."},
+  {to:"medical:dental", label:"Medical — dental", cap:1000,
+   kw:["dental","dentist","gigi","scaling","filling","tampal gigi","braces","orthodont","root canal","tooth","teeth"],
+   note:"Dental examination and treatment by a registered dentist. Sub-limit RM1,000.",
+   no:["toothpaste","ubat gigi","toothbrush","berus gigi","mouthwash","whitening kit"], noWhy:"Toothpaste, toothbrushes and mouthwash are not treatment."},
+  {to:"medical:checkup", label:"Medical — check-up, screening, mental health, test kit", cap:1000,
+   kw:["check-up","checkup","check up","pemeriksaan","screening","saringan","blood test","ujian darah","health screening","medical examination","mammogram","pap smear","x-ray","mri","ultrasound","psychologist","psychiatrist","counsel","kaunseling","mental health","therapy session","self-test","test kit","covid","antigen","rtk","glucose meter","blood pressure monitor"],
+   note:"Full medical check-up, disease screening, mental-health consultation or self-test kits. Sub-limit RM1,000."},
+  {to:"medical:serious", label:"Medical — serious illness / fertility", cap:10000,
+   kw:["hospital","hospital bill","specialist","pakar","chemotherapy","kemoterapi","dialysis","dialisis","cancer","kanser","heart","jantung","stroke","kidney","buah pinggang","surgery","pembedahan","ivf","fertility","kesuburan","iui","oncology","cardiology"],
+   note:"Treatment for serious diseases (e.g. cancer, heart, kidney failure) or fertility treatment, for you, spouse or child. Needs a doctor's certification; normal flu/fever visits don't count.",
+   no:["vitamin","supplement","panadol","cough syrup","ubat batuk","plaster","cosmetic","aesthetic","botox","slimming"], noWhy:"Over-the-counter medicine, supplements and cosmetic treatments are not covered."},
+  {to:"medical:learning", label:"Medical — child learning disability", capYA:{2025:6000,2026:10000},
+   kw:["autism","autisme","adhd","dyslexia","disleksia","speech therapy","terapi pertuturan","occupational therapy","early intervention","intervensi awal","down syndrome","learning disabilit"],
+   note:"Diagnosis, early intervention or rehabilitation for a child aged 18 or below, by a registered provider."},
+  {to:"parents", label:"Parents' medical / care", cap:8000,
+   kw:["nursing home","rumah jagaan","caregiver","penjaga","old folks","warga emas","elderly care","parent","ibu bapa","ayah","emak","mother","father","home care","physiotherapy"],
+   note:"Medical treatment, dental, special needs or carer costs for your parents/grandparents (living in Malaysia). Needs a medical practitioner's certification. Check-up/vaccination sub-limit RM1,000."},
+  {to:"equipment", label:"Equipment for disabled person", cap:6000,
+   kw:["wheelchair","kerusi roda","hearing aid","alat bantu dengar","prosthe","artificial limb","kaki palsu","dialysis machine","mesin dialisis","walker","crutch","tongkat","hospital bed","katil hospital","oxygen concentrator"],
+   note:"For yourself, spouse, child or parent who is disabled (registered with JKM).",
+   no:["spectacle","eyeglass","cermin mata","contact lens","kanta"], noWhy:"Spectacles and optical lenses are specifically excluded."},
+  {to:"childcare", label:"Childcare / kindergarten", cap:3000,
+   kw:["taska","tadika","kindergarten","preschool","pre-school","prasekolah","nursery","childcare","child care","daycare","day care","transit","after-school","after school","pusat jagaan"],
+   note:"Centre must be registered (JKM / Ministry of Education). YA 2026: child up to 12 incl. day-care & after-school transit; YA 2025: child 6 or below. One parent claims per child.",
+   no:["tuition","tusyen","school fee","yuran sekolah","uniform","pakaian seragam"], noWhy:"Tuition, school fees and uniforms aren't childcare."},
+  {to:"breastfeed", label:"Breastfeeding equipment", cap:1000,
+   kw:["breast pump","pam susu","breastpump","milk storage","cooler bag","ice pack","nursing cover","breast milk","spectra","medela","lansinoh"],
+   note:"Mothers only, for a child aged 2 or below, once every 2 years."},
+  {to:"sspn", label:"SSPN savings", cap:8000, kw:["sspn","ptptn","skim simpanan pendidikan"],
+   note:"Net deposits for the year (deposits minus withdrawals). Use the SSPN annual statement."},
+  {to:"eduFees", label:"Your own education fees", cap:7000,
+   kw:["university","universiti","college","kolej","semester fee","yuran pengajian","tuition fee","master","mba","phd","doktor falsafah","diploma","degree","ijazah","acca","cima","cpa","icaew","cfa","professional certificate","sijil profesional","exam fee","yuran peperiksaan","short course","kursus","training course","upskill"],
+   note:"Your own studies: law, accounting, Islamic finance, technical, vocational, scientific or technology courses at diploma+ level, any master's/PhD, or recognised upskilling courses (RM2,000 sub-limit). Children's fees don't count here."},
+  {to:"life", label:"Life insurance / takaful", cap:3000,
+   kw:["life insurance","insurans hayat","family takaful","takaful keluarga","whole life","term life","investment-linked","great eastern","prudential","aia","allianz","manulife","tokio marine","etiqa","zurich","sun life","fwd","hong leong assurance","premium"],
+   note:"Combined RM7,000 with EPF (life insurance part up to RM3,000). Policy on yourself or spouse (and eligible children from YA 2026). Use the insurer's annual statement."},
+  {to:"eduMed", label:"Education / medical insurance", cap:4000,
+   kw:["medical card","kad perubatan","medical insurance","insurans perubatan","hospitalisation","hospitalization","health insurance","education plan","education insurance","medical takaful","critical illness"],
+   note:"Premiums for medical or education policies for you, spouse or children."},
+  {to:"prs", label:"Private Retirement Scheme", cap:3000, kw:["prs","private retirement","skim persaraan swasta","deferred annuity","anuiti"],
+   note:"Use the PRS provider's annual statement."},
+  {to:"green", label:"EV charging & green home", cap:2500,
+   kw:["ev charger","ev charging","wallbox","charging station","chargev","gentari","jomcharge","tesla supercharger","shell recharge","compost","kompos","food waste","sisa makanan","composter"],
+   kw2026:["food waste grinder","pengisar sisa","cctv","security camera","kamera keselamatan","ip camera"],
+   note:"Not for business use. YA 2026 adds food waste grinders and home CCTV (one claim within YA 2026–2027; subscription CCTV doesn't count).",
+   no:["dashcam","dash cam"], noWhy:"Car dashcams aren't home CCTV."},
+  {to:"tourism", label:"Tourist attraction & cultural entrance fees", cap:1000, onlyYA:[2026],
+   kw:["entrance","admission","tiket masuk","ticket","museum","muzium","zoo","aquarium","akuarium","aquaria","theme park","taman tema","waterpark","legoland","sunway lagoon","genting skyworlds","skyworld","bird park","taman burung","planetarium","galeri","gallery","heritage","warisan","cultural","kebudayaan","istana budaya","pameran","exhibition","national park","taman negara","cable car","skybridge","kl tower","menara"],
+   note:"YA 2026 only: entrance fees to tourist attractions and arts/cultural programmes. Hotels, food and transport aren't covered.",
+   no:["hotel","resort","homestay","airbnb","flight","airasia","malaysia airlines","bus ticket","tiket bas","ktm","ets","movie","cinema","pawagam","gsc","tgv","concert"], noWhy:"Accommodation, transport and movie tickets aren't entrance fees to attractions."},
+  {to:"zakat", label:"Zakat / fitrah (tax rebate)", cap:99999, kw:["zakat","fitrah","lembaga zakat","pusat pungutan zakat","ppz","maiwp","lzs","asnaf"],
+   note:"Reduces your tax directly, ringgit for ringgit (up to your tax payable). Keep the official zakat receipt."},
+  {to:"donation", label:"Approved donation (deduction)", cap:99999, kw:["donation","derma","sumbangan","wakaf","sedekah","charity","amal","yayasan","foundation","tabung","mercy","nkf","unicef"],
+   note:"Deductible only if the organisation is approved under s44(6) — the receipt must show the approval reference (e.g. LHDN.01/35/42/51/179-6.xxxx). Capped at 10% of income."}
+];
+const NOT_CLAIMABLE = [
+  ["petrol","petronas","shell","caltex","bhp","petron","toll","tol","touch n go","parking","grab","ride"],
+  ["grocer","supermarket","pasar raya","mydin","lotus","aeon","giant","jaya grocer","99 speedmart","kk mart","7-eleven","family mart"],
+  ["restaurant","restoran","cafe","kopitiam","mcdonald","kfc","starbucks","food","makanan","nasi","grabfood","foodpanda","shopeefood"],
+  ["clothing","fashion","uniqlo","zara","h&m","padini","cosmetic","makeup","sephora","watsons","guardian"],
+  ["electric","tnb","tenaga","water bill","air selangor","syabas","astro","netflix","spotify","disney"]
+];
+
+function rcFind(text){
+  const t = " " + text.toLowerCase().replace(/\s+/g," ") + " ";
+  const results=[];
+  for(const r of RULES){
+    if(r.onlyYA && !r.onlyYA.includes(S.ya)) continue;
+    const kws = r.kw.concat(S.ya===2026 && r.kw2026 ? r.kw2026 : []);
+    const hits = kws.filter(k=>t.includes(k));
+    const bad = (r.no||[]).filter(k=>t.includes(k));
+    if(hits.length) results.push({r, hits, bad, score:hits.length*2 + Math.max(...hits.map(h=>h.length))/10});
+  }
+  results.sort((a,b)=>b.score-a.score);
+  const notc = NOT_CLAIMABLE.flat().filter(k=>t.includes(" "+k)||t.includes(k+" "));
+  return {results, notc};
+}
+function rcAmount(text){
+  const lines = text.split(/\n/);
+  const num = s => { const m = s.replace(/,/g,"").match(/(?:rm|myr)?\s*(\d{1,6}(?:\.\d{1,2})?)(?!\d)/gi); if(!m) return []; return m.map(x=>parseFloat(x.replace(/[^\d.]/g,""))).filter(n=>n>0&&n<1e6); };
+  for(const l of lines){ if(/(grand\s*total|total\s*(amount|due|paid)?|jumlah|amount\s*(due|paid)|net\s*total|balance due)/i.test(l)){ const n=num(l); if(n.length) return Math.max(...n); } }
+  const rmOnly = (text.replace(/,/g,"").match(/(?:rm|myr)\s*\d{1,6}(?:\.\d{1,2})?/gi)||[]).map(x=>parseFloat(x.replace(/[^\d.]/g,"")));
+  if(rmOnly.length) return Math.max(...rmOnly);
+  const all = num(text).filter(n=>!(n>=1900&&n<=2100&&Number.isInteger(n)));
+  return all.length?Math.max(...all):0;
+}
+function rcYear(text){ const m=text.match(/\b(?:\d{1,2}[\/\-.]\d{1,2}[\/\-.]|\d{1,2}\s+[a-z]{3,9}\s+)?(20\d{2})\b/gi); if(!m) return null; const ys=m.map(x=>+x.match(/20\d{2}/)[0]); return ys.find(y=>y===2025||y===2026||y===2024||y===2027)||null; }
+
+function capFor(rule){ return rule.capYA ? rule.capYA[S.ya] : rule.cap; }
+function currentFor(to){
+  if(to==="zakat") return S.zakat||0; if(to==="donation") return S.donation||0;
+  if(to.startsWith("medical:")) return S.sub[to.split(":")[1]]||0;
+  return S.amt[to]||0;
+}
+function addTo(to, amount){
+  const rule = RULES.find(r=>r.to===to); const cap=capFor(rule);
+  if(to==="zakat"){ S.zakat=(S.zakat||0)+amount; }
+  else if(to==="donation"){ S.donation=(S.donation||0)+amount; }
+  else if(to.startsWith("medical:")){ const k=to.split(":")[1]; S.sub[k]=Math.min(cap,(S.sub[k]||0)+amount); }
+  else { S.amt[to]=Math.min(cap,(S.amt[to]||0)+amount); }
+  // Make sure the matching profile question doesn't hide the relief
+  if(to==="parents") S.a.parents="yes"; if(to==="equipment") S.a.disabledFamily="yes"; if(to==="eduFees") S.a.studying="yes";
+  if(to==="childcare"){ S.a.hasKids="yes"; S.a.youngKids="yes"; } if(to==="sspn"||to==="medical:learning") S.a.hasKids="yes";
+  if(to==="breastfeed"){ S.a.gender="f"; S.a.hasKids="yes"; S.a.baby="yes"; }
+  save();
+}
+
+let rcPhoto=null, rcLast=null;
+const sheet=document.getElementById("sheet");
+function openSheet(){ sheet.classList.add("open"); document.getElementById("sheetYa").textContent="YA "+S.ya; renderRcList(); }
+function closeSheet(){ sheet.classList.remove("open"); render(0); }
+document.getElementById("receiptBtn").onclick=openSheet;
+document.getElementById("sheetClose").onclick=closeSheet;
+
+document.getElementById("photoIn").addEventListener("change", e=>{
+  const f=e.target.files&&e.target.files[0]; if(!f) return;
+  const img=new Image(); const url=URL.createObjectURL(f);
+  img.onload=()=>{ const max=900, k=Math.min(1,max/Math.max(img.width,img.height)); const c=document.createElement("canvas"); c.width=Math.round(img.width*k); c.height=Math.round(img.height*k);
+    c.getContext("2d").drawImage(img,0,0,c.width,c.height); rcPhoto=c.toDataURL("image/jpeg",0.6); URL.revokeObjectURL(url);
+    const pv=document.getElementById("photoPrev"); pv.src=rcPhoto; pv.hidden=false; toast("Photo saved. Now scan or type the text"); document.getElementById("rcText").focus(); };
+  img.src=url;
+});
+
+document.getElementById("rcCheck").onclick=()=>{
+  const text=document.getElementById("rcText").value.trim();
+  if(!text){ toast("Scan or type the receipt text first"); return; }
+  rcLast = analyze(text); showVerdict(rcLast);
+};
+
+function analyze(text){
+  const f=rcFind(text), amount=rcAmount(text), year=rcYear(text);
+  const top=f.results[0];
+  let level, title, why=[];
+  if(top && top.bad.length){ level="no"; title="Probably not eligible"; why.push(top.r.noWhy); }
+  else if(top){ level = (top.r.to.startsWith("medical:serious")||top.r.to==="parents"||top.r.to==="donation"||top.r.to==="eduFees") ? "maybe" : "ok";
+    title = level==="ok" ? "Looks eligible ✓" : "Eligible if conditions are met"; why.push(top.r.note); }
+  else if(f.notc.length){ level="no"; title="Not claimable"; why.push("Everyday spending like fuel, groceries, food, clothing and utility bills can't be claimed as tax relief."); }
+  else { level="maybe"; title="Couldn't tell"; why.push("No relief keywords found. Pick a category below if you know what it's for, or add more detail (shop name, item)."); }
+  if(year && year!==S.ya){ if(level==="ok"){ level="maybe"; title="Check the date"; } } if(year && year!==S.ya) why.push(`⚠️ Receipt is dated ${year}, but you're claiming YA ${S.ya}. Only spending in ${S.ya} counts for YA ${S.ya}.`);
+  return {text, amount, year, level, title, why, rule: top?top.r:null, others:f.results.slice(1,3).map(x=>x.r), date:new Date().toISOString().slice(0,10)};
+}
+
+function showVerdict(v){
+  const box=document.getElementById("rcResult");
+  const r=v.rule;
+  const capLine = r && r.to!=="zakat" && r.to!=="donation" ? `<p>Limit: <b>${RM(capFor(r))}</b> · already claimed: <b>${RM(currentFor(r.to))}</b></p>` : "";
+  box.innerHTML = `<div class="verdict ${v.level}">
+     <h4>${v.level==="ok"?"✅":v.level==="maybe"?"🟡":"⛔"} ${esc(v.title)}</h4>
+     ${r?`<p><b>${esc(r.label)}</b></p>`:""}
+     ${v.why.map(w=>`<p>${esc(w)}</p>`).join("")}
+     ${capLine}
+   </div>
+   <div class="stepper" style="margin-top:12px"><div class="lab">Amount on receipt<small>Detected automatically. Adjust if wrong.</small></div>
+     <div class="ctl"><button data-rcd="-10">−</button><span class="n" id="rcAmt" style="min-width:80px">${RM2(v.amount)}</span><button data-rcd="10">+</button></div></div>
+   ${r && v.level!=="no" ? `<button class="snap" data-rcadd="${r.to}">➕ Add ${RM2(v.amount)} to ${esc(r.label)}</button>` : ""}
+   <p class="sub" style="margin:12px 0 4px">${r?"Wrong category? Choose one:":"Choose a category:"}</p>
+   <div class="cats">${RULES.filter(x=>(!x.onlyYA||x.onlyYA.includes(S.ya)) && x!==r).map(x=>`<button class="chip" data-rcpick="${x.to}">${esc(x.label.replace(/ \(.+\)$/,""))}</button>`).join("")}</div>
+   <button class="snap alt" style="margin-top:12px" data-rcsave="1">💾 Save receipt only</button>`;
+}
+
+document.getElementById("rcResult").addEventListener("click", e=>{
+  const b=e.target.closest("button"); if(!b||!rcLast) return;
+  if(b.dataset.rcd){ rcLast.amount=Math.max(0,Math.round((rcLast.amount+ +b.dataset.rcd)*100)/100); document.getElementById("rcAmt").textContent=RM2(rcLast.amount);
+    const add=document.querySelector("[data-rcadd]"); if(add) add.textContent=`➕ Add ${RM2(rcLast.amount)} to ${rcLast.rule.label}`; return; }
+  if(b.dataset.rcpick){ const r=RULES.find(x=>x.to===b.dataset.rcpick); rcLast.rule=r; rcLast.level="maybe"; rcLast.title="You chose this category"; rcLast.why=[r.note].concat(rcLast.year&&rcLast.year!==S.ya?[`⚠️ Receipt is dated ${rcLast.year}, not ${S.ya}.`]:[]); showVerdict(rcLast); return; }
+  if(b.dataset.rcadd){ const amt=rcLast.amount; addTo(b.dataset.rcadd, amt); storeReceipt(true); toast(`Added ${RM2(amt)} to your claim`); return; }
+  if(b.dataset.rcsave){ storeReceipt(false); toast("Receipt saved"); return; }
+});
+
+function storeReceipt(claimed){
+  const entry={id:Date.now(), photo:rcPhoto, text:rcLast.text.slice(0,400), amount:rcLast.amount, to:rcLast.rule?rcLast.rule.to:null, label:rcLast.rule?rcLast.rule.label:"Uncategorised", level:rcLast.level, claimed, ya:S.ya, date:rcLast.date};
+  S.receipts=(S.receipts||[]); S.receipts.unshift(entry);
+  try{ save(); localStorage.setItem(KEY, JSON.stringify(S)); }
+  catch(e){ entry.photo=null; save(); toast("Phone storage full: saved without photo"); }
+  rcPhoto=null; rcLast=null;
+  document.getElementById("photoPrev").hidden=true; document.getElementById("rcText").value=""; document.getElementById("rcResult").innerHTML="";
+  document.getElementById("photoIn").value="";
+  renderRcList();
+}
+function renderRcList(){
+  const list=(S.receipts||[]);
+  document.getElementById("rcCount").textContent=list.length;
+  const badge=document.getElementById("rcBadge"); badge.textContent=list.length; badge.style.display=list.length?"flex":"none";
+  const colors={ok:"var(--ok)",maybe:"var(--accent)",no:"var(--danger)"};
+  document.getElementById("rcList").innerHTML = list.length ? list.map(r=>`<div class="r">${r.photo?`<img src="${r.photo}" alt="">`:`<img alt="">`}
+     <div class="m"><b><span class="dot" style="background:${colors[r.level]}"></span>${esc(r.label)}</b>${RM2(r.amount)} · YA ${r.ya} · ${r.claimed?"added to claim":"not added"}<br><span style="color:var(--muted)">${esc(r.text.slice(0,60))}</span></div>
+     <button class="x" data-rcdel="${r.id}" aria-label="Delete">🗑</button></div>`).join("") : `<p class="sub" style="margin:4px 0">No receipts yet.</p>`;
+}
+document.getElementById("rcList").addEventListener("click", e=>{
+  const b=e.target.closest("[data-rcdel]"); if(!b) return;
+  const id=+b.dataset.rcdel; const r=S.receipts.find(x=>x.id===id);
+  if(r && r.claimed && r.to){ // remove its amount from the claim
+    if(r.to==="zakat") S.zakat=Math.max(0,S.zakat-r.amount); else if(r.to==="donation") S.donation=Math.max(0,S.donation-r.amount);
+    else if(r.to.startsWith("medical:")){ const k=r.to.split(":")[1]; S.sub[k]=Math.max(0,(S.sub[k]||0)-r.amount); } else S.amt[r.to]=Math.max(0,(S.amt[r.to]||0)-r.amount);
+  }
+  S.receipts=S.receipts.filter(x=>x.id!==id); save(); renderRcList(); toast("Receipt deleted");
+});
+function rcTally(id){
+  const rs=(S.receipts||[]).filter(r=>r.to===id && r.ya===S.ya && r.claimed);
+  return rs.length?`<div class="note">📷 ${rs.length} receipt${rs.length>1?"s":""} added: ${RM(rs.reduce((t,r)=>t+r.amount,0))}</div>`:"";
+}
+function showCopyBox(t){
+  const box=document.getElementById("rcResult"); openSheet();
+  box.innerHTML=`<p class="sub">Copy your summary:</p><textarea readonly style="min-height:220px">${esc(t)}</textarea>`;
+  box.querySelector("textarea").select();
+}
+
+renderRcList();
 render(1);
 </script>
 </body>
