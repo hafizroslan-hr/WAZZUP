@@ -18,17 +18,18 @@
   :root:not([data-theme="light"]){
     --bg:#0c1311; --card:#15201d; --ink:#e8efed; --muted:#9db0ab; --line:#26332f;
     --brand:#2dd4bf; --brand-ink:#04201c; --brand-soft:#123a34; --accent:#fbbf24; --danger:#fb923c; --ok:#4ade80;
-    --shadow:0 10px 30px rgba(0,0,0,.4);
+    --shadow:0 10px 30px rgba(0,0,0,.4); color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
+  color-scheme:dark;
   --bg:#0c1311; --card:#15201d; --ink:#e8efed; --muted:#9db0ab; --line:#26332f;
   --brand:#2dd4bf; --brand-ink:#04201c; --brand-soft:#123a34; --accent:#fbbf24; --danger:#fb923c; --ok:#4ade80;
   --shadow:0 10px 30px rgba(0,0,0,.4);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;overscroll-behavior:none}
-body{display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+body{display:flex;flex-direction:column;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
 header{display:flex;align-items:center;gap:10px;padding:12px 16px 6px}
 header h1{font-size:15px;margin:0;font-weight:700;letter-spacing:.2px;flex:1}
 header .pill{font-size:12px;font-weight:700;background:var(--brand-soft);color:var(--brand);padding:4px 10px;border-radius:99px}
@@ -98,7 +99,7 @@ h3{font-size:15px;margin:18px 0 6px}
   main{overflow:visible}
   .card{position:static;box-shadow:none;inset:auto}
 }
-.sheet{position:fixed;inset:0;background:var(--bg);z-index:20;display:none;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.sheet{position:fixed;inset:0;background:var(--bg);z-index:20;display:none;flex-direction:column;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
 .sheet.open{display:flex}
 .sheet .top{display:flex;align-items:center;gap:10px;padding:12px 16px}
 .sheet .top h1{flex:1;font-size:17px;margin:0}
@@ -124,6 +125,17 @@ textarea{width:100%;min-height:110px;border:2px solid var(--line);border-radius:
 .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
 .badge{position:absolute;top:2px;right:2px;min-width:18px;height:18px;border-radius:9px;background:var(--accent);color:#000;font-size:11px;font-weight:800;display:none;align-items:center;justify-content:center;padding:0 5px}
 .danger{background:var(--danger)!important;color:#fff!important}
+.items .it{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:14px}
+.items .it:first-child{border-top:0}
+.items .it .nm{flex:1;min-width:0}
+.items .it .nm small{display:block;color:var(--muted)}
+.items .it .am{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.addbtn{margin-top:8px}
+.addbtn:disabled{opacity:.6}
+details.fallback summary{font-weight:700;cursor:pointer;padding:4px 0}
+.spin{display:inline-block;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){.spin{animation:none}.card{transition:none}}
 </style>
 </head>
 <body>
@@ -148,18 +160,30 @@ textarea{width:100%;min-height:110px;border:2px solid var(--line);border-radius:
   <div class="top"><button class="iconbtn" id="sheetClose" aria-label="Close">✕</button><h1>📷 Receipt checker</h1><span class="pill" id="sheetYa"></span></div>
   <div class="body">
     <div class="panel">
-      <div class="kicker">Step 1 · Snap</div>
-      <p class="sub" style="margin:6px 0 12px">Take a photo of the receipt. It's kept on this phone as your record.</p>
-      <label class="snap" for="photoIn">📸 Snap receipt</label>
-      <input id="photoIn" type="file" accept="image/*" capture="environment" hidden>
+      <div class="kicker">Upload a receipt</div>
+      <p class="sub" style="margin:6px 0 12px" id="aiNote">Take a photo or pick one from your gallery. Claude reads every item and checks it against the YA relief rules.</p>
+      <label class="snap" for="photoIn">📸 Snap or upload receipt</label>
+      <input id="photoIn" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/*" hidden>
       <img id="photoPrev" class="thumb" alt="" hidden>
+      <div id="rcResult"></div>
     </div>
     <div class="panel">
-      <div class="kicker">Step 2 · Read the text</div>
-      <p class="sub" style="margin:6px 0 0">Tap the box, then choose <b>Scan Text</b> (the <b>⧉</b> icon above the keyboard on iPhone) and point at the receipt. The text is read on your phone, offline. You can also just type the shop name and item.</p>
-      <textarea id="rcText" placeholder="Tap here → Scan Text, or type e.g. &quot;Popular Bookstore – novel RM45&quot;"></textarea>
-      <button class="snap alt" id="rcCheck" style="margin-top:10px">🔍 Check eligibility</button>
-      <div id="rcResult"></div>
+      <details id="aiSettings">
+        <summary style="font-weight:700;cursor:pointer;padding:4px 0">⚙️ AI receipt checking: <span id="aiState">off</span></summary>
+        <p class="sub" style="margin:8px 0 6px">Paste your Anthropic API key to let Claude read receipt photos. The key is saved only in this browser on this device and is sent only to Anthropic. Each check costs a few sen on your Anthropic account.</p>
+        <p class="sub" style="margin:0 0 8px">Get a key at <b>console.anthropic.com</b> → API Keys. Use a key just for this app and set a monthly spend limit there.</p>
+        <input id="aiKey" type="password" autocomplete="off" placeholder="sk-ant-..." style="width:100%;height:48px;border:2px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);padding:0 12px;font-size:15px">
+        <div class="row2" style="margin-top:10px"><button class="snap" id="aiKeySave">Save key</button><button class="snap alt" id="aiKeyClear">Remove key</button></div>
+      </details>
+    </div>
+    <div class="panel">
+      <details class="fallback" id="fallback">
+        <summary>No photo? Type the receipt instead</summary>
+        <p class="sub" style="margin:6px 0 0">Type the shop and items, or on iPhone tap the box and choose <b>Scan Text</b>. This quick check uses built-in keyword rules.</p>
+        <textarea id="rcText" placeholder="e.g. Popular Bookstore, novel RM45"></textarea>
+        <button class="snap alt" id="rcCheck" style="margin-top:10px">🔍 Check eligibility</button>
+        <div id="rcTextResult"></div>
+      </details>
     </div>
     <div class="panel">
       <div class="kicker">Saved receipts · <span id="rcCount">0</span></div>
@@ -376,10 +400,10 @@ function updateChrome(s){
 function makeCard(s){
   switch(s.type){
     case "welcome": return el(`
-      <div class="emoji">🧾</div><div class="kicker">Offline · private</div>
+      <div class="emoji">🧾</div><div class="kicker">YA 2025 · YA 2026</div>
       <h2>Claim every tax relief you're entitled to</h2>
       <p class="sub">Answer a few quick taps. We'll only show the reliefs that apply to you, then give you a summary to copy into e-Filing (Form BE).</p>
-      <div class="note">🔒 Everything stays on this device. Nothing is uploaded.<br>⚠️ Figures are compiled from published guides on LHDN rules. Always confirm against <b>hasil.gov.my</b> before filing. This is not tax advice.</div>
+      <div class="note">🔒 Your answers stay on this device. Receipt photos are sent to Claude only if you turn on AI receipt checking.<br>⚠️ Figures are compiled from published guides on LHDN rules. Always confirm against <b>hasil.gov.my</b> before filing. This is not tax advice.</div>
       <div class="spacer"></div>
       ${Object.keys(S.a).length?`<button class="opt" data-reset="1"><span class="e">🔄</span>Clear my saved answers</button>`:""}`);
     case "choice": {
@@ -478,7 +502,7 @@ function summaryCard(){
     <h3>📎 Documents to keep (7 years)</h3>
     <ul class="docs">${[...docs].map(d=>`<li>${esc(d)}</li>`).join("")||"<li>None needed beyond your EA form</li>"}</ul>
     <div class="actions"><button data-act="copy">📋 Copy summary</button><button data-act="print">🖨️ Print / PDF</button></div>
-    <div class="note">Estimate for resident individuals using the YA ${S.ya} tax bands (0%–30%). Not tax advice — confirm figures with LHDN before submitting on MyTax.</div>`);
+    <div class="note">Estimate for resident individuals using the YA ${S.ya} tax bands (0%–30%). Not tax advice. Confirm figures with LHDN before submitting on MyTax.</div>`);
 }
 
 function summaryText(){
@@ -539,8 +563,8 @@ stage.addEventListener("click", e=>{
     b.parentElement.querySelectorAll(".chip").forEach(c=>c.classList.toggle("sel",c===b)); refreshLive(); return; }
   if(b.dataset.kid){ const k=b.dataset.kid; S.kids[k]=Math.max(0,Math.min(12,(S.kids[k]||0)+ +b.dataset.d)); b.parentElement.querySelector(".n").textContent=S.kids[k]; refreshLive(); return; }
   if(b.dataset.reset){ S=fresh(); save(); current.remove(); current=null; render(1); toast("Answers cleared"); return; }
-  if(b.dataset.act==="copy"){ const t=summaryText(); (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast("Summary copied"),()=>showCopyBox(t)); return; }
   if(b.dataset.act==="print"){ window.print(); return; }
+  if(b.dataset.act==="copy"){ const t=summaryText(); (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast("Summary copied"),()=>showCopyBox(t)); return; }
 });
 stage.addEventListener("input", e=>{
   const r=e.target; if(r.type!=="range") return;
@@ -714,16 +738,214 @@ document.getElementById("sheetClose").onclick=closeSheet;
 document.getElementById("photoIn").addEventListener("change", e=>{
   const f=e.target.files&&e.target.files[0]; if(!f) return;
   const img=new Image(); const url=URL.createObjectURL(f);
-  img.onload=()=>{ const max=900, k=Math.min(1,max/Math.max(img.width,img.height)); const c=document.createElement("canvas"); c.width=Math.round(img.width*k); c.height=Math.round(img.height*k);
-    c.getContext("2d").drawImage(img,0,0,c.width,c.height); rcPhoto=c.toDataURL("image/jpeg",0.6); URL.revokeObjectURL(url);
-    const pv=document.getElementById("photoPrev"); pv.src=rcPhoto; pv.hidden=false; toast("Photo saved. Now scan or type the text"); document.getElementById("rcText").focus(); };
+  img.onload=()=>{
+    const max=1600, k=Math.min(1,max/Math.max(img.width,img.height)); const c=document.createElement("canvas");
+    c.width=Math.round(img.width*k); c.height=Math.round(img.height*k); c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+    URL.revokeObjectURL(url);
+    // small copy for the saved record, larger JPEG for Claude to read
+    const t=document.createElement("canvas"); const tk=Math.min(1,500/Math.max(c.width,c.height)); t.width=Math.round(c.width*tk); t.height=Math.round(c.height*tk);
+    t.getContext("2d").drawImage(c,0,0,t.width,t.height); rcPhoto=t.toDataURL("image/jpeg",0.6);
+    const pv=document.getElementById("photoPrev"); pv.src=rcPhoto; pv.hidden=false;
+    c.toBlob(blob=>aiCheck(blob||f),"image/jpeg",0.85);
+  };
+  img.onerror=()=>{ URL.revokeObjectURL(url); aiCheck(f); };
   img.src=url;
+  e.target.value="";
+});
+
+/* ---------- Claude receipt reading (Anthropic API, your own key) ---------- */
+const AI_KEY="my-tax-relief-ai-key";
+const SDK_URL="https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@1.3.0/+esm";
+function getKey(){ try{ return localStorage.getItem(AI_KEY)||""; }catch(e){ return ""; } }
+function hasKey(){ return /^sk-ant-/.test(getKey()); }
+let canImages=hasKey(), aiBusy=null, sdkPromise=null;
+function refreshAiState(){
+  canImages=hasKey();
+  document.getElementById("aiState").textContent = canImages ? "on" : "off";
+  document.getElementById("aiNote").textContent = canImages
+    ? "Take a photo or pick one from your gallery. Claude reads every item and checks it against the YA relief rules."
+    : "Take a photo to keep as your record. To have Claude check it, turn on AI receipt checking below (needs an Anthropic API key), or type the items instead.";
+  if(!canImages) document.getElementById("aiSettings").open=true;
+}
+document.getElementById("aiKeySave").onclick=()=>{
+  const k=document.getElementById("aiKey").value.trim();
+  if(!/^sk-ant-/.test(k)){ toast("That doesn't look like an Anthropic key (sk-ant-…)"); return; }
+  try{ localStorage.setItem(AI_KEY,k); }catch(e){ toast("Couldn't save: browser storage is blocked"); return; }
+  document.getElementById("aiKey").value=""; document.getElementById("aiSettings").open=false; refreshAiState(); toast("AI receipt checking is on");
+};
+document.getElementById("aiKeyClear").onclick=()=>{ try{ localStorage.removeItem(AI_KEY); }catch(e){} refreshAiState(); toast("Key removed"); };
+refreshAiState();
+
+const RECEIPT_SCHEMA = () => ({
+  type:"object", additionalProperties:false,
+  required:["readable","merchant","date","total","items","summary","checks"],
+  properties:{
+    readable:{type:"boolean"},
+    merchant:{type:"string"},
+    date:{type:"string", description:"YYYY-MM-DD, or empty if not shown"},
+    total:{type:"number"},
+    items:{type:"array", items:{type:"object", additionalProperties:false,
+      required:["name","amount","category","eligible","reason"],
+      properties:{
+        name:{type:"string"}, amount:{type:"number"},
+        category:{type:"string", enum: RULES.filter(r=>!r.onlyYA||r.onlyYA.includes(S.ya)).map(r=>r.to).concat(["none"])},
+        eligible:{type:"string", enum:["yes","maybe","no"]},
+        reason:{type:"string"}}}},
+    summary:{type:"string"},
+    checks:{type:"array", items:{type:"string"}}
+  }
+});
+
+function blobToBase64(blob){
+  return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result).split(",")[1]); r.onerror=rej; r.readAsDataURL(blob); });
+}
+
+/* Same call shape the claude.ai version used: (prompt, {images, signal}) -> parsed JSON */
+const sampleFn = { async json(prompt, opts){
+  if(!sdkPromise) sdkPromise = import(SDK_URL);
+  let mod; try{ mod = await sdkPromise; }catch(e){ sdkPromise=null; throw {code:"offline"}; }
+  const Anthropic = mod.default;
+  const client = new Anthropic({ apiKey:getKey(), dangerouslyAllowBrowser:true, maxRetries:1 });
+  const blob = opts.images[0];
+  const data = await blobToBase64(blob);
+  let resp;
+  try{
+    resp = await client.beta.messages.create({
+      model:"claude-opus-5-5",
+      max_tokens:16000,
+      betas:["server-side-fallback-2026-07-01"],
+      fallbacks:"default",
+      output_config:{ effort:"medium", format:{ type:"json_schema", schema:RECEIPT_SCHEMA() } },
+      messages:[{ role:"user", content:[
+        { type:"image", source:{ type:"base64", media_type: blob.type==="image/png"?"image/png":"image/jpeg", data } },
+        { type:"text", text: prompt }
+      ]}]
+    }, { signal: opts.signal });
+  }catch(e){
+    if(opts.signal && opts.signal.aborted) throw {code:"cancelled"};
+    if(e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) throw {code:"bad_key"};
+    if(e instanceof Anthropic.RateLimitError) throw {code:"rate_limited"};
+    if(e instanceof Anthropic.BadRequestError) throw {code:"image_rejected", detail:e.message};
+    if(e instanceof Anthropic.APIConnectionError) throw {code:"offline"};
+    throw {code:"upstream_error", detail: e && e.message};
+  }
+  if(resp.stop_reason==="refusal") throw {code:"refused"};
+  const text = (resp.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("");
+  try{ return JSON.parse(text); }catch(e){ throw {code:"invalid_json"}; }
+}};
+
+function profileText(){
+  const a=S.a, bits=[];
+  bits.push(a.married==="yes"?(a.spouseIncome==="no"?"married, spouse has no income":"married, spouse has income"):"not married or not answered");
+  bits.push(a.hasKids==="yes"?"has children":"no children or not answered");
+  if(a.parents==="yes") bits.push("pays parents' medical care");
+  if(a.disabled==="yes") bits.push("taxpayer is OKU");
+  if(a.gender==="f") bits.push("female");
+  return bits.join("; ");
+}
+
+async function aiCheck(blob){
+  const box=document.getElementById("rcResult");
+  if(!canImages){ box.innerHTML=`<div class="verdict maybe"><h4>Photo ready</h4><p>Turn on AI receipt checking above to have Claude read it, or type the items below.</p></div><button class="snap alt" style="margin-top:10px" data-aisave="1">💾 Save photo as a record</button>`; rcAi={photo:rcPhoto,added:{}, r:null}; return; }
+  if(aiBusy) aiBusy.abort();
+  const ctl=new AbortController(); aiBusy=ctl;
+  box.innerHTML=`<div class="verdict maybe"><h4><span class="spin">⏳</span> Reading your receipt…</h4><p>Claude is checking each item against the YA ${S.ya} relief rules. This can take up to a minute.</p></div><button class="snap alt" style="margin-top:10px" data-aistop="1">Stop</button>`;
+  const cats=RULES.filter(r=>!r.onlyYA||r.onlyYA.includes(S.ya)).map(r=>{
+    const cap=r.capYA?r.capYA[S.ya]:r.cap;
+    return `- ${r.to}: ${r.label}${cap<99999?` (limit RM${cap})`:""}. ${r.note}${r.noWhy?" NOT eligible: "+r.noWhy:""}`;}).join("\n");
+  const prompt=`You check Malaysian receipts for LHDN personal income tax relief for a resident individual, Year of Assessment ${S.ya}. Only spending dated in ${S.ya} counts toward YA ${S.ya}.
+The attached image is a photo of one receipt, invoice or statement. Read it carefully (it may be in English or Malay), then judge every line item against these relief categories (use the id before the colon):
+${cats}
+
+Taxpayer context: ${profileText()}.
+Rules: groceries, food and drinks, fuel, tolls, parking, transport, utilities, clothing, cosmetics and general shopping are not claimable. Service tax/SST belongs to the item it was charged on. Be conservative: answer "maybe" when eligibility depends on something the receipt can't show (e.g. a doctor's certification for serious illness, a registered childcare centre, a donation approval number, whether an item is for the taxpayer's parent, personal vs business use).
+
+Reply with only this JSON:
+{"readable":true,"merchant":"","date":"YYYY-MM-DD or null","currency":"MYR","total":0,
+ "items":[{"name":"","amount":0,"category":"one id from the list or null","eligible":"yes|maybe|no","reason":"max 18 words"}],
+ "summary":"one plain sentence, max 30 words",
+ "checks":["short things to confirm or documents to keep"]}
+Amounts are numbers in ringgit. If the image isn't a receipt or can't be read, set "readable": false, leave items empty and explain in summary.`;
+  try{
+    const r=await sampleFn.json(prompt,{images:[blob], signal:ctl.signal});
+    if(aiBusy===ctl) aiBusy=null;
+    showAi(r);
+  }catch(e){
+    if(aiBusy===ctl) aiBusy=null;
+    const code=e&&e.code;
+    if(code==="cancelled"){ box.innerHTML=`<p class="sub">Stopped.</p>`; return; }
+    const msg = code==="bad_key" ? "Your API key was rejected. Check it in AI receipt checking settings above."
+      : code==="offline" ? "Couldn't reach Anthropic. Check your internet connection, then upload again. (The rest of the app works offline.)"
+      : code==="refused" ? "Claude declined to read this image. Try a photo of just the receipt."
+      : code==="rate_limited" ? "Too many checks right now. Wait a minute, then upload again."
+      : code==="image_rejected" ? "That photo couldn't be used. Try a JPEG or PNG, or a smaller photo."
+      : code==="invalid_json"||code==="empty_completion" ? "Claude couldn't produce a clear result. Try a sharper, flatter photo."
+      : "Something went wrong reaching Claude. Upload the photo again to retry.";
+    if(code==="bad_key"){ document.getElementById("aiSettings").open=true; }
+    box.innerHTML=`<div class="verdict no"><h4>Couldn't check this receipt</h4><p>${esc(msg)}</p></div>`;
+  }
+}
+
+let rcAi=null;
+function showAi(r){
+  const box=document.getElementById("rcResult");
+  if(!r||typeof r!=="object"){ box.innerHTML=`<div class="verdict no"><h4>Couldn't read the result</h4><p>Upload the photo again.</p></div>`; return; }
+  const items=Array.isArray(r.items)?r.items.filter(i=>i&&typeof i==="object"):[];
+  const valid=id=>RULES.some(x=>x.to===id && (!x.onlyYA||x.onlyYA.includes(S.ya)));
+  for(const i of items){ i.amount=Math.max(0,Number(i.amount)||0); if(!valid(i.category)) i.category=null; if(!["yes","maybe","no"].includes(i.eligible)) i.eligible="maybe"; if(!i.category && i.eligible!=="no") i.eligible="no"; }
+  const year = r.date && /^\d{4}/.test(String(r.date)) ? +String(r.date).slice(0,4) : null;
+  const wrongYear = year && year!==S.ya;
+  const groups={};
+  for(const i of items){ if(i.eligible==="no"||!i.category) continue; groups[i.category]=(groups[i.category]||0)+i.amount; }
+  const anyYes=items.some(i=>i.eligible==="yes"&&i.category), anyMaybe=items.some(i=>i.eligible==="maybe"&&i.category);
+  let level = r.readable===false ? "no" : anyYes&&!wrongYear ? "ok" : (anyYes||anyMaybe) ? "maybe" : "no";
+  const title = r.readable===false ? "Couldn't read this photo" : level==="ok" ? (anyMaybe||items.some(i=>i.eligible==="no")?"Partly eligible":"Eligible ✓") : level==="maybe" ? (wrongYear?"Check the date":"Eligible if conditions are met") : "Not eligible";
+  const colors={yes:"var(--ok)",maybe:"var(--accent)",no:"var(--danger)"};
+  const labelOf=id=>{ const x=RULES.find(q=>q.to===id); return x?x.label:"Not claimable"; };
+  rcAi={r, groups, level, title, year, photo:rcPhoto, added:{}};
+  box.innerHTML=`<div class="verdict ${level}">
+      <h4>${level==="ok"?"✅":level==="maybe"?"🟡":"⛔"} ${esc(title)}</h4>
+      <p><b>${esc(r.merchant||"Unknown shop")}</b>${r.date?` · ${esc(r.date)}`:""}${r.total?` · total ${RM2(Number(r.total)||0)}`:""}</p>
+      ${r.summary?`<p>${esc(r.summary)}</p>`:""}
+      ${wrongYear?`<p>⚠️ Dated ${year}. You're claiming YA ${S.ya}, so this only counts for YA ${year}.</p>`:""}
+    </div>
+    ${items.length?`<div class="items" style="margin-top:10px">${items.map(i=>`<div class="it"><span class="dot" style="background:${colors[i.eligible]};margin-top:6px"></span><div class="nm">${esc(i.name||"Item")}<small>${esc(i.category?labelOf(i.category):"Not claimable")} · ${esc(i.reason||"")}</small></div><div class="am">${RM2(i.amount)}</div></div>`).join("")}</div>`:""}
+    ${Array.isArray(r.checks)&&r.checks.length?`<div class="note"><b>Before you claim:</b><br>${r.checks.slice(0,5).map(c=>"• "+esc(String(c))).join("<br>")}</div>`:""}
+    ${Object.keys(groups).map(id=>{ const rule=RULES.find(x=>x.to===id); const cap=capFor(rule); const room=rule.cap>=99999?Infinity:Math.max(0,cap-currentFor(id));
+        return `<button class="snap addbtn" data-aiadd="${id}">➕ Add ${RM2(groups[id])} to ${esc(rule.label)}${room<groups[id]?` (only ${RM2(room)} of the limit left)`:""}</button>`; }).join("")}
+    <button class="snap alt addbtn" data-aisave="1">💾 Save receipt only</button>
+    <p class="sub" style="margin-top:10px;font-size:13px">Claude's reading is a guide, not a ruling. Check the amounts against the receipt.</p>`;
+}
+
+function pushEntry(e){
+  S.receipts=S.receipts||[]; S.receipts.unshift(e);
+  try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(err){ e.photo=null; try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(_){} toast("Storage full: saved without photo"); }
+  renderRcList();
+}
+document.getElementById("rcResult").addEventListener("click", e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  if(b.dataset.aistop){ if(aiBusy) aiBusy.abort(); return; }
+  if(!rcAi) return;
+  const r=rcAi.r||{};
+  const text=((r.merchant||"Receipt")+(r.summary?" — "+r.summary:"")).slice(0,400);
+  const firstPhoto=()=>{ const p=rcAi.photo; rcAi.photo=null; return p; };
+  if(b.dataset.aiadd){
+    const id=b.dataset.aiadd, amt=Math.round((rcAi.groups[id]||0)*100)/100; if(rcAi.added[id]) return;
+    addTo(id, amt); rcAi.added[id]=true;
+    const rule=RULES.find(x=>x.to===id);
+    pushEntry({id:Date.now()+Math.random(), photo:firstPhoto(), text, amount:amt, to:id, label:rule.label, level:rcAi.level==="no"?"maybe":rcAi.level, claimed:true, ya:S.ya, date:new Date().toISOString().slice(0,10)});
+    b.disabled=true; b.textContent=`✓ Added ${RM2(amt)} to ${rule.label}`; toast("Added to your claim"); return;
+  }
+  if(b.dataset.aisave){
+    pushEntry({id:Date.now()+Math.random(), photo:firstPhoto(), text, amount:Number(r.total)||0, to:null, label:r.merchant||"Receipt", level:rcAi.level||"maybe", claimed:false, ya:S.ya, date:new Date().toISOString().slice(0,10)});
+    b.disabled=true; b.textContent="✓ Saved"; toast("Receipt saved"); return;
+  }
 });
 
 document.getElementById("rcCheck").onclick=()=>{
   const text=document.getElementById("rcText").value.trim();
   if(!text){ toast("Scan or type the receipt text first"); return; }
-  rcLast = analyze(text); showVerdict(rcLast);
+  rcLast = analyze(text); rcLast.photo = null; showVerdict(rcLast);
 };
 
 function analyze(text){
@@ -740,7 +962,7 @@ function analyze(text){
 }
 
 function showVerdict(v){
-  const box=document.getElementById("rcResult");
+  const box=document.getElementById("rcTextResult");
   const r=v.rule;
   const capLine = r && r.to!=="zakat" && r.to!=="donation" ? `<p>Limit: <b>${RM(capFor(r))}</b> · already claimed: <b>${RM(currentFor(r.to))}</b></p>` : "";
   box.innerHTML = `<div class="verdict ${v.level}">
@@ -757,7 +979,7 @@ function showVerdict(v){
    <button class="snap alt" style="margin-top:12px" data-rcsave="1">💾 Save receipt only</button>`;
 }
 
-document.getElementById("rcResult").addEventListener("click", e=>{
+document.getElementById("rcTextResult").addEventListener("click", e=>{
   const b=e.target.closest("button"); if(!b||!rcLast) return;
   if(b.dataset.rcd){ rcLast.amount=Math.max(0,Math.round((rcLast.amount+ +b.dataset.rcd)*100)/100); document.getElementById("rcAmt").textContent=RM2(rcLast.amount);
     const add=document.querySelector("[data-rcadd]"); if(add) add.textContent=`➕ Add ${RM2(rcLast.amount)} to ${rcLast.rule.label}`; return; }
@@ -767,13 +989,12 @@ document.getElementById("rcResult").addEventListener("click", e=>{
 });
 
 function storeReceipt(claimed){
-  const entry={id:Date.now(), photo:rcPhoto, text:rcLast.text.slice(0,400), amount:rcLast.amount, to:rcLast.rule?rcLast.rule.to:null, label:rcLast.rule?rcLast.rule.label:"Uncategorised", level:rcLast.level, claimed, ya:S.ya, date:rcLast.date};
+  const entry={id:Date.now(), photo:null, text:rcLast.text.slice(0,400), amount:rcLast.amount, to:rcLast.rule?rcLast.rule.to:null, label:rcLast.rule?rcLast.rule.label:"Uncategorised", level:rcLast.level, claimed, ya:S.ya, date:rcLast.date};
   S.receipts=(S.receipts||[]); S.receipts.unshift(entry);
   try{ save(); localStorage.setItem(KEY, JSON.stringify(S)); }
   catch(e){ entry.photo=null; save(); toast("Phone storage full: saved without photo"); }
   rcPhoto=null; rcLast=null;
-  document.getElementById("photoPrev").hidden=true; document.getElementById("rcText").value=""; document.getElementById("rcResult").innerHTML="";
-  document.getElementById("photoIn").value="";
+  document.getElementById("rcText").value=""; document.getElementById("rcTextResult").innerHTML="";
   renderRcList();
 }
 function renderRcList(){
@@ -800,6 +1021,7 @@ function rcTally(id){
 }
 function showCopyBox(t){
   const box=document.getElementById("rcResult"); openSheet();
+  document.getElementById("fallback").open=false;
   box.innerHTML=`<p class="sub">Copy your summary:</p><textarea readonly style="min-height:220px">${esc(t)}</textarea>`;
   box.querySelector("textarea").select();
 }
@@ -807,5 +1029,7 @@ function showCopyBox(t){
 renderRcList();
 render(1);
 </script>
+
+
 </body>
 </html>
