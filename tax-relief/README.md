@@ -28,7 +28,7 @@ the root folder, and save. Then open `https://<your-username>.github.io/WAZZUP/t
 Notes:
 - The key is stored only in that browser's local storage and is sent only to `api.anthropic.com`. Anyone who uses
   that browser on that device could read it, so don't use this on a shared device.
-- Each check costs roughly a few sen on your Anthropic account (one image plus a short reply).
+- Each check costs roughly RM0.15–0.25 (about US$0.03–0.05) on your Anthropic account: one image, the relief rules and a short reply.
 - Requests opt in to Anthropic's server-side refusal fallback (`fallbacks: "default"`), so a request Claude declines
   for safety reasons is retried on a fallback model.
 - Without a key, or offline, the app still works fully. Receipts can be checked with the built-in keyword rules by
